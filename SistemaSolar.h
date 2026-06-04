@@ -43,7 +43,7 @@ public:
 
     // Trail storage
     std::deque<Vector2> path;
-    size_t maxPathLength = 250; // Adjust this for longer or shorter trails
+    size_t maxPathLength = 250; 
 
     Mover(float x, float y, float vx, float vy, float m, float r_c, float g_c, float b_c) {
         pos = Vector2(x, y);
@@ -69,12 +69,12 @@ public:
 
         // Record current position to the trail
         path.push_back(pos);
-        // Remove the oldest poisition if th trail exceeds the maixum length
+        // Remove the oldest position if the trail exceeds the maximum length
         if (path.size() > maxPathLength) path.pop_front();
     }
 
     void checkEdges(float screenWidth, float screenHeight) {
-        float bounceDamping = -0.8f; // Retain 80% of speed, flip direction
+        float bounceDamping = -0.8f; 
 
         if (pos.x > screenWidth - r) {
             pos.x = screenWidth - r;
@@ -106,7 +106,6 @@ public:
         r = std::sqrt(mass) * 1.0f;
     }
 
-    // Dynamic gravity parameter added
     void attract(Mover& mover, float currentGravity) {
         Vector2 force = Vector2::sub(pos, mover.pos);
         float distanceSq = force.magSq();
@@ -114,7 +113,6 @@ public:
         if (distanceSq < 25.0f) distanceSq = 25.0f;
         if (distanceSq > 250000.0f) distanceSq = 250000.0f;
 
-        // Calculate strength using the dynamic gravity value
         float strength = currentGravity * (mass * mover.mass) / distanceSq;
 
         force.setMag(strength);
@@ -145,11 +143,10 @@ private:
     float m_screenHeight;
 
 public:
-    // Expose parameters for the UI controller
     float gravityMultiplier = 2.0f;
     float sunMass = 300.0f;
     bool enableNBody = false;
-    bool containPlanets = true; // New toggle for screen boundaries
+    bool containPlanets = true; 
 
     SolarSystem(int screenWidth, int screenHeight) {
         m_screenWidth = (float)screenWidth;
@@ -159,16 +156,14 @@ public:
 
         attractor = new Attractor(cx, cy, 300);
 
-        // Parameters: X, Y (cy + radius), VelX, VelY, Mass, R, G, B
-        // Distances are reduced. Velocities are mathematically balanced for stable orbits.
-        movers.push_back(Mover(cx, cy + 30.0f, 4.47f, 0.0f, 2.0f, 0.5f, 0.5f, 0.5f));   // Mercury
-        movers.push_back(Mover(cx, cy + 50.0f, 3.46f, 0.0f, 4.0f, 0.9f, 0.7f, 0.2f));   // Venus
-        movers.push_back(Mover(cx, cy + 70.0f, 2.92f, 0.0f, 5.0f, 0.2f, 0.4f, 1.0f));   // Earth
-        movers.push_back(Mover(cx, cy + 90.0f, 2.58f, 0.0f, 3.0f, 0.8f, 0.2f, 0.1f));   // Mars
-        movers.push_back(Mover(cx, cy + 120.0f, 2.23f, 0.0f, 25.0f, 0.8f, 0.6f, 0.4f)); // Jupiter
-        movers.push_back(Mover(cx, cy + 150.0f, 2.00f, 0.0f, 15.0f, 0.9f, 0.8f, 0.6f)); // Saturn
-        movers.push_back(Mover(cx, cy + 180.0f, 1.82f, 0.0f, 10.0f, 0.4f, 0.8f, 0.9f)); // Uranus
-        movers.push_back(Mover(cx, cy + 210.0f, 1.69f, 0.0f, 9.0f, 0.1f, 0.2f, 0.8f));  // Neptune
+        movers.push_back(Mover(cx, cy + 30.0f, 4.47f, 0.0f, 2.0f, 0.5f, 0.5f, 0.5f));   
+        movers.push_back(Mover(cx, cy + 50.0f, 3.46f, 0.0f, 4.0f, 0.9f, 0.7f, 0.2f));   
+        movers.push_back(Mover(cx, cy + 70.0f, 2.92f, 0.0f, 5.0f, 0.2f, 0.4f, 1.0f));   
+        movers.push_back(Mover(cx, cy + 90.0f, 2.58f, 0.0f, 3.0f, 0.8f, 0.2f, 0.1f));   
+        movers.push_back(Mover(cx, cy + 120.0f, 2.23f, 0.0f, 25.0f, 0.8f, 0.6f, 0.4f)); 
+        movers.push_back(Mover(cx, cy + 150.0f, 2.00f, 0.0f, 15.0f, 0.9f, 0.8f, 0.6f)); 
+        movers.push_back(Mover(cx, cy + 180.0f, 1.82f, 0.0f, 10.0f, 0.4f, 0.8f, 0.9f)); 
+        movers.push_back(Mover(cx, cy + 210.0f, 1.69f, 0.0f, 9.0f, 0.1f, 0.2f, 0.8f));  
     }
 
     ~SolarSystem() {
@@ -176,40 +171,38 @@ public:
     }
 
     void onUpdate() {
-        // 1. Update the sun's mass dynamically based on the UI
         attractor->mass = sunMass;
         attractor->r = std::sqrt(sunMass) * 1.0f;
-        // 2. The Sun attracts all planets
+        
         for (auto& mover : movers) {
             attractor->attract(mover, gravityMultiplier);
         }
-        // 3. N-Body Interaction (Planets attracting planets)
+        
         if (enableNBody) {
             for (size_t i = 0; i < movers.size(); i++) {
                 for (size_t j = i + 1; j < movers.size(); j++) {
-                    if (i != j) {
-                        // Calculate force between mover[i] and mover[j]
-                        Vector2 force = Vector2::sub(movers[i].pos, movers[j].pos);
-                        float distanceSq = force.magSq();
-                        
-                        // Constrain distance to avoid extreme slingshots
-                        if (distanceSq < 100.0f) distanceSq = 100.0f;
-                        if (distanceSq > 250000.0f) distanceSq = 250000.0f;
+                    // Force vector pointing from j to i
+                    Vector2 force = Vector2::sub(movers[i].pos, movers[j].pos);
+                    float distanceSq = force.magSq();
+                    
+                    if (distanceSq < 100.0f) distanceSq = 100.0f;
+                    if (distanceSq > 250000.0f) distanceSq = 250000.0f;
 
-                        float strength = gravityMultiplier * (movers[i].mass * movers[j].mass) / distanceSq;
-                        force.setMag(strength);
+                    float strength = gravityMultiplier * (movers[i].mass * movers[j].mass) / distanceSq;
+                    force.setMag(strength);
 
-                        // Apply force negatively to pull j towards i
-                        movers[j].applyForce(force);
-                    }
+                    // Pull body j towards body i
+                    movers[j].applyForce(force);
+
+                    // Newton's Third Law: Apply equal and opposite force to body i
+                    Vector2 reverseForce(-force.x, -force.y);
+                    movers[i].applyForce(reverseForce);
                 }
             }   
         }
-        // 4. Update kinematics
+        
         for (auto& mover : movers) {
-            // Pass the exposed gravity to the physics calculation
             mover.update();
-            // Apply boundary checks if the feature is enabled
             if (containPlanets) {
                 mover.checkEdges(m_screenWidth, m_screenHeight);
             }
@@ -217,21 +210,19 @@ public:
     }
 
     void onDisplay() {
-        // Draw the trails first 
         for (const auto& mover : movers) {
             glBegin(GL_LINE_STRIP);
-            // use  the planet's color, but we can also darken it here if desired
             glColor3f(mover.r_col, mover.g_col, mover.b_col);
             for (const auto& point : mover.path) {
                 glVertex2f(point.x, point.y);
             }
             glEnd();
         }
-        // Draw the planets
+        
         for (auto& mover : movers) {
             drawCircle(mover.pos.x, mover.pos.y, mover.r, 20, mover.r_col, mover.g_col, mover.b_col);
         }
-        // Draw the sun            
+                 
         drawCircle(attractor->pos.x, attractor->pos.y, attractor->r, 40, 1.0f, 0.8f, 0.0f);
     }
 

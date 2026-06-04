@@ -1,10 +1,9 @@
 #include <GLFW/glfw3.h>
 #include "SistemaSolar.h"
 
-// ImGui headers
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl2.h" // Correct OpenGL2 header
+#include "imgui_impl_opengl2.h"
 
 SolarSystem* solarsystem;
 
@@ -38,11 +37,9 @@ int main(void) {
     if (!glfwInit())
         return -1;
 
-    // Windowed mode configuration
-    int screenWidth = 1920;
-    int screenHeight = 1080;
+    int screenWidth = 1280;
+    int screenHeight = 720;
     
-    // The fourth parameter is NULL, ensuring the window is not full-screen
     window = glfwCreateWindow(screenWidth, screenHeight, "SolarSystem at LabEx", NULL, NULL);
     
     if (!window) {
@@ -54,48 +51,47 @@ int main(void) {
     glfwSwapInterval(1);
     glfwSetKeyCallback(window, keyCallback);
 
-    // Initialize ImGui Context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui::StyleColorsDark();
 
-    // Setup ImGui Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL2_Init(); // Correct OpenGL2 initialization
+    ImGui_ImplOpenGL2_Init();
 
     solarsystem = new SolarSystem(screenWidth, screenHeight);
 
-    // --- NEW VARIABLES FOR PLACEMENT MODE ---
+    // Placement Mode Variables
     bool isPlacementMode = false;
+    bool autoOrbit = false; // Fixed: Default to false to prioritize Slingshot mechanics
     float spawnMass = 5.0f;
-    bool autoOrbit = true;
-    float spawnVel[2] = { 0.0f, 0.0f }; // Array for X and Y velocity
-    float spawnColor[3] = { 1.0f, 1.0f, 1.0f }; // Array for RGB color (Default White)
-    // ----------------------------------------
+    float spawnColor[3] = { 1.0f, 1.0f, 1.0f }; 
+    
+    // Slingshot State Machine Variables
+    bool isDragging = false;
+    double dragStartX = 0.0, dragStartY = 0.0;
+    double dragCurrentX = 0.0, dragCurrentY = 0.0;
+    float slingshotMultiplier = 0.05f;
+    bool wasLeftMouseButtonDown = false; // Tracks the previous frame's mouse state
 
     while (!glfwWindowShouldClose(window)) {
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL2_NewFrame(); // Correct OpenGL2 frame setup
+        
+        ImGui_ImplOpenGL2_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // --- UPDATED MOUSE INTERACTION LOGIC ---
+        // Check raw GLFW mouse state
+        bool isLeftMouseButtonDown = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+
         if (!io.WantCaptureMouse) {
             if (isPlacementMode) {
-                if (ImGui::IsMouseClicked(0)) {
-                    double mouseX, mouseY;
-                    glfwGetCursorPos(window, &mouseX, &mouseY);
-                    
-                    float finalVx = spawnVel[0];
-                    float finalVy = spawnVel[1];
-
-                    // Mathematically calculate a perfect circular orbit
-                    if (autoOrbit) {
-                        // Assuming you make attractor public or create a getAttractorPos() method
-                        // For this example, let's pretend we have a method: solarsystem->getSunPosX()
-                        // (You'll need to adjust this based on how you expose the sun's position)
+                if (autoOrbit) {
+                    // Auto-Orbit: Triggered immediately when the button is first pressed
+                    if (isLeftMouseButtonDown && !wasLeftMouseButtonDown) {
+                        double mouseX, mouseY;
+                        glfwGetCursorPos(window, &mouseX, &mouseY);
                         
+                        float finalVx = 0.0f, finalVy = 0.0f;
                         float sunX = solarsystem->getSunPosX();
                         float sunY = solarsystem->getSunPosY();
                         
@@ -104,31 +100,51 @@ int main(void) {
                         float distance = std::sqrt(dx*dx + dy*dy);
                         
                         if (distance > 0) {
-                            // Orbital velocity formula: v = sqrt(G * M / r)
                             float v_mag = std::sqrt((solarsystem->gravityMultiplier * solarsystem->sunMass) / distance);
-                            
-                            // Perpendicular vector for circular orbit (-dy, dx) normalized
                             finalVx = -(dy / distance) * v_mag;
                             finalVy = (dx / distance) * v_mag;
                         }
-                    }
 
-                    solarsystem->addBody(
-                        (float)mouseX, (float)mouseY, 
-                        finalVx, finalVy, 
-                        spawnMass, 
-                        spawnColor[0], spawnColor[1], spawnColor[2]
-                    );
+                        solarsystem->addBody((float)mouseX, (float)mouseY, finalVx, finalVy, spawnMass, spawnColor[0], spawnColor[1], spawnColor[2]);
+                    }
+                } else {
+                    // Slingshot: Track press, hold, and release states
+                    if (isLeftMouseButtonDown && !wasLeftMouseButtonDown) {
+                        // Edge detect: Mouse just clicked
+                        isDragging = true;
+                        glfwGetCursorPos(window, &dragStartX, &dragStartY);
+                        dragCurrentX = dragStartX;
+                        dragCurrentY = dragStartY;
+                    } 
+                    else if (isLeftMouseButtonDown && isDragging) {
+                        // Mouse held down: Update the current drag position
+                        glfwGetCursorPos(window, &dragCurrentX, &dragCurrentY);
+                    } 
+                    else if (!isLeftMouseButtonDown && wasLeftMouseButtonDown && isDragging) {
+                        // Edge detect: Mouse just released
+                        isDragging = false;
+                        float finalVx = (float)(dragStartX - dragCurrentX) * slingshotMultiplier;
+                        float finalVy = (float)(dragStartY - dragCurrentY) * slingshotMultiplier;
+                        
+                        solarsystem->addBody((float)dragStartX, (float)dragStartY, finalVx, finalVy, spawnMass, spawnColor[0], spawnColor[1], spawnColor[2]);
+                    }
                 }
             } 
             else {
-                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+                // Drag the Sun
+                if (isLeftMouseButtonDown) {
                     double mouseX, mouseY;
                     glfwGetCursorPos(window, &mouseX, &mouseY);
                     solarsystem->setSunPosition((float)mouseX, (float)mouseY);
                 }
             }
+        } else {
+            // Abort dragging if the cursor moves over the ImGui menu
+            isDragging = false; 
         }
+
+        // Store the mouse state for the next frame's edge detection
+        wasLeftMouseButtonDown = isLeftMouseButtonDown;
 
         solarsystem->onUpdate();
 
@@ -146,28 +162,34 @@ int main(void) {
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        // Draw the solar system objects
         solarsystem->onDisplay();
+
+        // Render the slingshot tension line
+        if (isDragging && !autoOrbit) {
+            glBegin(GL_LINES);
+            glColor3f(spawnColor[0], spawnColor[1], spawnColor[2]);
+            glVertex2f((float)dragStartX, (float)dragStartY);
+            
+            glColor3f(1.0f, 0.0f, 0.0f); 
+            glVertex2f((float)dragCurrentX, (float)dragCurrentY);
+            glEnd();
+        }
 
         // Build the control panel UI
         ImGui::Begin("Solar System Controls");
-        ImGui::Text("Adjust physics variables in real time:");
-
+        ImGui::Text("Global Physics Settings:");
         ImGui::SliderFloat("Gravitational Force (G)", &solarsystem->gravityMultiplier, 0.1f, 10.0f);
-        ImGui::SliderFloat("Sun Mass", &solarsystem->sunMass, 1.0f, 1000.0f);
+        ImGui::SliderFloat("Sun Mass", &solarsystem->sunMass, 50.0f, 1000.0f);
         ImGui::Checkbox("Enable N-Body Gravity", &solarsystem->enableNBody);
         ImGui::Checkbox("Contain Planets (Screen Bounds)", &solarsystem->containPlanets);
-
-        if (ImGui::Button("Reset Simulation")) {
-            // Re-instatiate the system to original values
+        
+        if (ImGui::Button("Reset System")) {
             delete solarsystem;
             solarsystem = new SolarSystem(screenWidth, screenHeight);
         }
 
-
         ImGui::Separator();
-
-        // New Sandbox Menu
+        
         ImGui::Text("Sandbox: Body Spawner");
         ImGui::Checkbox("Enable Placement Mode", &isPlacementMode);
         
@@ -175,12 +197,7 @@ int main(void) {
             ImGui::Indent();
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Click anywhere on the screen to spawn!");
             ImGui::SliderFloat("New Mass", &spawnMass, 0.1f, 50.0f);
-            
             ImGui::Checkbox("Auto-Calculate Stable Orbit", &autoOrbit);
-            if (!autoOrbit) {
-                ImGui::SliderFloat2("Manual Velocity (X, Y)", spawnVel, -10.0f, 10.0f);
-            }
-            
             ImGui::ColorEdit3("Body Color", spawnColor);
             ImGui::Unindent();
         }
@@ -189,16 +206,14 @@ int main(void) {
         ImGui::Text("Performance: %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::End();
 
-        // Render ImGui over the OpenGL scene
         ImGui::Render();
-        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData()); // Correct OpenGL2 rendering
+        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // Cleanup ImGui
-    ImGui_ImplOpenGL2_Shutdown(); // Correct OpenGL2 shutdown
+    ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 

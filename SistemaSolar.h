@@ -151,8 +151,7 @@ public:
         float cx = (float)screenWidth / 2.0f;
         float cy = (float)screenHeight / 2.0f;
 
-       // SYSTEM ANCHOR FIX: Mass 10000 ensures heavy planets do not eject the sun easily
-        // The Sun
+        // The Sun: Mass 10000 results in a physical radius of 100.0f
         bodies.push_back(CelestialBody(BodyType::STAR, cx, cy, 0.0f, 0.0f, 10000.0f, 1.0f, 0.8f, 0.0f));
 
         // Creating the Inner Solar System
@@ -160,20 +159,21 @@ public:
         // Here, G = gravityMultiplier = 2.0f, Mass_Sun = 10000.0f. So G * M = 20000.0f
 
         // 1. Mercury (Closest, Fastest, Smallest)
-        // Distance: 60.0f. v = sqrt(20000 / 60) = sqrt(333.33) ≈ 18.25
-        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 60.0f, 18.25f, 0.0f, 0.5f, 0.6f, 0.6f, 0.6f)); // Grey
+        // Pushed distance to 160.0f to safely clear the Sun's 100.0f radius. 
+        // v = sqrt(20000 / 160) = sqrt(125) ≈ 11.18
+        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 160.0f, 11.18f, 0.0f, 0.5f, 0.6f, 0.6f, 0.6f)); 
 
         // 2. Venus (Slower, Further, Similar to Earth size)
-        // Distance: 100.0f. v = sqrt(20000 / 100) = sqrt(200) ≈ 14.14
-        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 100.0f, 14.14f, 0.0f, 4.0f, 0.9f, 0.7f, 0.2f)); // Orange/Yellow
+        // Distance: 220.0f. v = sqrt(20000 / 220) ≈ 9.53
+        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 220.0f, 9.53f, 0.0f, 4.0f, 0.9f, 0.7f, 0.2f)); 
 
         // 3. Earth (The baseline)
-        // Distance: 150.0f. v = sqrt(20000 / 150) = sqrt(133.33) ≈ 11.54
-        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 150.0f, 11.54f, 0.0f, 5.0f, 0.2f, 0.4f, 1.0f)); // Blue
+        // Distance: 300.0f. v = sqrt(20000 / 300) ≈ 8.16
+        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 300.0f, 8.16f, 0.0f, 5.0f, 0.2f, 0.4f, 1.0f)); 
 
         // 4. Mars (Furthest of inner, slowest, smaller than Earth)
-        // Distance: 200.0f. v = sqrt(20000 / 200) = sqrt(100) = 10.0
-        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 200.0f, 10.0f, 0.0f, 3.0f, 0.8f, 0.2f, 0.1f)); // Red
+        // Distance: 400.0f. v = sqrt(20000 / 400) ≈ 7.07
+        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 400.0f, 7.07f, 0.0f, 3.0f, 0.8f, 0.2f, 0.1f));
     }
 
     void onUpdate() {

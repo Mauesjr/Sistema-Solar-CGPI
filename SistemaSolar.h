@@ -6,8 +6,9 @@
 #include <cmath>
 #include <vector>
 #include <cstdlib>
+#include <deque>
 
-// 1. Nossa própria estrutura de Vetores
+// Custom Vector structure
 struct Vector2 {
     float x, y;
 
@@ -33,22 +34,24 @@ struct Vector2 {
     }
 };
 
-// 2. Classe Mover (Os planetas)
+// Mover class representing planets
 class Mover {
 public:
     Vector2 pos, vel, acc;
     float mass, r;
-    float r_col, g_col, b_col; // NOVO: Guardam a cor do planeta (Red, Green, Blue)
+    float r_col, g_col, b_col;
 
-    // NOVO: Adicionamos os 3 últimos parâmetros para receber a cor
+    // Trail storage
+    std::deque<Vector2> path;
+    size_t maxPathLength = 250; // Adjust this for longer or shorter trails
+
     Mover(float x, float y, float vx, float vy, float m, float r_c, float g_c, float b_c) {
         pos = Vector2(x, y);
         vel = Vector2(vx, vy);
         acc = Vector2(0, 0);
         mass = m;
-        r = 8.0f; // Tamanho visual fixo para todos
+        r = 8.0f;
 
-        // Salva a cor escolhida
         r_col = r_c;
         g_col = g_c;
         b_col = b_c;
@@ -63,9 +66,35 @@ public:
         vel.add(acc);
         pos.add(vel);
         acc.mult(0);
+
+        // Record current position to the trail
+        path.push_back(pos);
+        // Remove the oldest poisition if th trail exceeds the maixum length
+        if (path.size() > maxPathLength) path.pop_front();
+    }
+
+    void checkEdges(float screenWidth, float screenHeight) {
+        float bounceDamping = -0.8f; // Retain 80% of speed, flip direction
+
+        if (pos.x > screenWidth - r) {
+            pos.x = screenWidth - r;
+            vel.x *= bounceDamping;
+        } else if (pos.x < r) {
+            pos.x = r;
+            vel.x *= bounceDamping;
+        }
+
+        if (pos.y > screenHeight - r) {
+            pos.y = screenHeight - r;
+            vel.y *= bounceDamping;
+        } else if (pos.y < r) {
+            pos.y = r;
+            vel.y *= bounceDamping;
+        }
     }
 };
-// 3. Classe Attractor (O Sol no centro)
+
+// Attractor class representing the central sun
 class Attractor {
 public:
     Vector2 pos;
@@ -74,28 +103,26 @@ public:
     Attractor(float x, float y, float m) {
         pos = Vector2(x, y);
         mass = m;
-        // MUDANÇA VISUAL: Multiplicamos por 1.0f para o Sol não ocupar a tela inteira.
         r = std::sqrt(mass) * 1.0f;
     }
 
-    void attract(Mover& mover) {
+    // Dynamic gravity parameter added
+    void attract(Mover& mover, float currentGravity) {
         Vector2 force = Vector2::sub(pos, mover.pos);
         float distanceSq = force.magSq();
 
         if (distanceSq < 25.0f) distanceSq = 25.0f;
         if (distanceSq > 250000.0f) distanceSq = 250000.0f;
 
-        // MUDANÇA NA FÍSICA: Diminuímos o G de 5.0 para 1.0. 
-        // Isso deixa tudo orbitando mais devagar e suavemente.
-        float G = 2.0f; 
-        float strength = G * (mass * mover.mass) / distanceSq;
+        // Calculate strength using the dynamic gravity value
+        float strength = currentGravity * (mass * mover.mass) / distanceSq;
 
         force.setMag(strength);
         mover.applyForce(force);
     }
 };
 
-// 4. O Gerenciador Principal
+// Main SolarSystem manager
 class SolarSystem {
 private:
     std::vector<Mover> movers;
@@ -114,25 +141,34 @@ private:
         glEnd();
     }
 
+    float m_screenWidth;
+    float m_screenHeight;
+
 public:
-    // NOVO: O construtor agora exige saber o tamanho da tela quando o jogo começar
+    // Expose parameters for the UI controller
+    float gravityMultiplier = 2.0f;
+    float sunMass = 300.0f;
+    bool enableNBody = false;
+    bool containPlanets = true; // New toggle for screen boundaries
+
     SolarSystem(int screenWidth, int screenHeight) {
-        // Calcula o centro exato de qualquer monitor
+        m_screenWidth = (float)screenWidth;
+        m_screenHeight = (float)screenHeight;
         float cx = (float)screenWidth / 2.0f;
         float cy = (float)screenHeight / 2.0f;
 
-        // Sol no centro dinâmico
         attractor = new Attractor(cx, cy, 300);
 
-        // Planetas alinhados em relação ao centro Y (cy)
-        movers.push_back(Mover(cx, cy + 40.0f, 5.00f, 0.0f, 2.0f, 0.5f, 0.5f, 0.5f));   // Mercúrio
-        movers.push_back(Mover(cx, cy + 70.0f, 3.78f, 0.0f, 4.0f, 0.9f, 0.7f, 0.2f));   // Vênus
-        movers.push_back(Mover(cx, cy + 100.0f, 3.16f, 0.0f, 5.0f, 0.2f, 0.4f, 1.0f));  // Terra
-        movers.push_back(Mover(cx, cy + 130.0f, 2.77f, 0.0f, 3.0f, 0.8f, 0.2f, 0.1f));  // Marte
-        movers.push_back(Mover(cx, cy + 170.0f, 2.42f, 0.0f, 25.0f, 0.8f, 0.6f, 0.4f)); // Júpiter
-        movers.push_back(Mover(cx, cy + 210.0f, 2.18f, 0.0f, 15.0f, 0.9f, 0.8f, 0.6f)); // Saturno
-        movers.push_back(Mover(cx, cy + 250.0f, 2.00f, 0.0f, 10.0f, 0.4f, 0.8f, 0.9f)); // Urano
-        movers.push_back(Mover(cx, cy + 290.0f, 1.86f, 0.0f, 9.0f, 0.1f, 0.2f, 0.8f));  // Netuno
+        // Parameters: X, Y (cy + radius), VelX, VelY, Mass, R, G, B
+        // Distances are reduced. Velocities are mathematically balanced for stable orbits.
+        movers.push_back(Mover(cx, cy + 30.0f, 4.47f, 0.0f, 2.0f, 0.5f, 0.5f, 0.5f));   // Mercury
+        movers.push_back(Mover(cx, cy + 50.0f, 3.46f, 0.0f, 4.0f, 0.9f, 0.7f, 0.2f));   // Venus
+        movers.push_back(Mover(cx, cy + 70.0f, 2.92f, 0.0f, 5.0f, 0.2f, 0.4f, 1.0f));   // Earth
+        movers.push_back(Mover(cx, cy + 90.0f, 2.58f, 0.0f, 3.0f, 0.8f, 0.2f, 0.1f));   // Mars
+        movers.push_back(Mover(cx, cy + 120.0f, 2.23f, 0.0f, 25.0f, 0.8f, 0.6f, 0.4f)); // Jupiter
+        movers.push_back(Mover(cx, cy + 150.0f, 2.00f, 0.0f, 15.0f, 0.9f, 0.8f, 0.6f)); // Saturn
+        movers.push_back(Mover(cx, cy + 180.0f, 1.82f, 0.0f, 10.0f, 0.4f, 0.8f, 0.9f)); // Uranus
+        movers.push_back(Mover(cx, cy + 210.0f, 1.69f, 0.0f, 9.0f, 0.1f, 0.2f, 0.8f));  // Neptune
     }
 
     ~SolarSystem() {
@@ -140,21 +176,72 @@ public:
     }
 
     void onUpdate() {
+        // 1. Update the sun's mass dynamically based on the UI
+        attractor->mass = sunMass;
+        attractor->r = std::sqrt(sunMass) * 1.0f;
+        // 2. The Sun attracts all planets
         for (auto& mover : movers) {
-            attractor->attract(mover);
+            attractor->attract(mover, gravityMultiplier);
+        }
+        // 3. N-Body Interaction (Planets attracting planets)
+        if (enableNBody) {
+            for (size_t i = 0; i < movers.size(); i++) {
+                for (size_t j = i + 1; j < movers.size(); j++) {
+                    if (i != j) {
+                        // Calculate force between mover[i] and mover[j]
+                        Vector2 force = Vector2::sub(movers[i].pos, movers[j].pos);
+                        float distanceSq = force.magSq();
+                        
+                        // Constrain distance to avoid extreme slingshots
+                        if (distanceSq < 25.0f) distanceSq = 25.0f;
+                        if (distanceSq > 250000.0f) distanceSq = 250000.0f;
+
+                        float strength = gravityMultiplier * (movers[i].mass * movers[j].mass) / distanceSq;
+                        force.setMag(strength);
+
+                        // Apply force negatively to pull j towards i
+                        movers[j].applyForce(force);
+                    }
+                }
+            }   
+        }
+        // 4. Update kinematics
+        for (auto& mover : movers) {
+            // Pass the exposed gravity to the physics calculation
             mover.update();
+            // Apply boundary checks if the feature is enabled
+            if (containPlanets) {
+                mover.checkEdges(m_screenWidth, m_screenHeight);
+            }
         }
     }
 
     void onDisplay() {
+        // Draw the trails first 
+        for (const auto& mover : movers) {
+            glBegin(GL_LINE_STRIP);
+            // use  the planet's color, but we can also darken it here if desired
+            glColor3f(mover.r_col, mover.g_col, mover.b_col);
+            for (const auto& point : mover.path) {
+                glVertex2f(point.x, point.y);
+            }
+            glEnd();
+        }
+        // Draw the planets
         for (auto& mover : movers) {
             drawCircle(mover.pos.x, mover.pos.y, mover.r, 20, mover.r_col, mover.g_col, mover.b_col);
         }
+        // Draw the sun            
         drawCircle(attractor->pos.x, attractor->pos.y, attractor->r, 40, 1.0f, 0.8f, 0.0f);
     }
 
-    void onKeyboard(unsigned char key, int x, int y) {
-        // Reservado
+    void onKeyboard(unsigned char key, int x, int y) {}
+
+    void setSunPosition(float x, float y) {
+        if (attractor != nullptr) {
+            attractor->pos.x = x;
+            attractor->pos.y = y;
+        }
     }
 };
 #endif // SOLARSYSTEM_HPP

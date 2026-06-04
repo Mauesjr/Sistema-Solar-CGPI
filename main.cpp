@@ -1,11 +1,13 @@
 #include <GLFW/glfw3.h>
 #include "SistemaSolar.h"
 
-// NOVO: Usamos um PONTEIRO global agora, porque só podemos criar o sistema 
-// DEPOIS que descobrirmos o tamanho da tela.
+// ImGui headers
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl2.h" // Correct OpenGL2 header
+
 SolarSystem* solarsystem;
 
-// Callback de teclado para o GLFW
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         unsigned char c = 0;
@@ -17,7 +19,6 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         else if (key == GLFW_KEY_ESCAPE) c = 27;
         else if (key == GLFW_KEY_SPACE) c = ' ';
 
-        // Se o usuário apertar ESC, fechamos o jogo (muito útil em Tela Cheia!)
         if (c == 27) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
@@ -31,48 +32,59 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     }
 }
 
-int main(void)
-{
+int main(void) {
     GLFWwindow* window;
 
     if (!glfwInit())
         return -1;
 
-    // --- CÓDIGO NOVO: PEGANDO A TELA INTEIRA ---
-    // 1. Encontra o seu monitor principal
-    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-
-    // 2. Descobre qual é a resolução atual dele (ex: 1920x1080)
-    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    int screenWidth = mode->width;
-    int screenHeight = mode->height;
-
-    // 3. Cria a janela usando as dimensões reais e passando o 'monitor' para ativar Tela Cheia
-    window = glfwCreateWindow(screenWidth, screenHeight, "SolarSystem at LabEx", monitor, NULL);
-    // -------------------------------------------
-
-    if (!window)
-    {
+    // Windowed mode configuration
+    int screenWidth = 1920;
+    int screenHeight = 1080;
+    
+    // The fourth parameter is NULL, ensuring the window is not full-screen
+    window = glfwCreateWindow(screenWidth, screenHeight, "SolarSystem at LabEx", NULL, NULL);
+    
+    if (!window) {
         glfwTerminate();
         return -1;
     }
 
     glfwMakeContextCurrent(window);
-
-    // LIGA O VSYNC! (Mantém em ~60 FPS)
     glfwSwapInterval(1);
-
     glfwSetKeyCallback(window, keyCallback);
 
-    // AGORA SIM! Criamos o Sistema Solar passando a largura e altura da tela
+    // Initialize ImGui Context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+
+    // Setup ImGui Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL2_Init(); // Correct OpenGL2 initialization
+
     solarsystem = new SolarSystem(screenWidth, screenHeight);
 
-    while (!glfwWindowShouldClose(window))
-    {
-        // 1. Atualiza a física
+    while (!glfwWindowShouldClose(window)) {
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL2_NewFrame(); // Correct OpenGL2 frame setup
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // Only move the sun if ImGui is NOT using the mouse (e.g., clicking sliders)
+        if (!io.WantCaptureMouse) {
+            // Check if the left mouse button is held down
+            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+                double mouseX, mouseY;
+                glfwGetCursorPos(window, &mouseX, &mouseY);
+                // Update the sun's position directly
+                solarsystem->setSunPosition((float)mouseX, (float)mouseY);
+            }
+        }
+
         solarsystem->onUpdate();
 
-        // 2. Prepara a tela
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         int width, height;
@@ -87,14 +99,42 @@ int main(void)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        // 3. Desenha os planetas
+        // Draw the solar system objects
         solarsystem->onDisplay();
+
+        // Build the control panel UI
+        ImGui::Begin("Solar System Controls");
+        ImGui::Text("Adjust physics variables in real time:");
+
+        ImGui::SliderFloat("Gravitational Force (G)", &solarsystem->gravityMultiplier, 0.1f, 10.0f);
+        ImGui::SliderFloat("Sun Mass", &solarsystem->sunMass, 1.0f, 1000.0f);
+        ImGui::Checkbox("Enable N-Body Gravity", &solarsystem->enableNBody);
+        ImGui::Checkbox("Contain Planets (Screen Bounds)", &solarsystem->containPlanets);
+
+        if (ImGui::Button("Reset Simulation")) {
+            // Re-instatiate the system to original values
+            delete solarsystem;
+            solarsystem = new SolarSystem(screenWidth, screenHeight);
+        }
+
+
+        ImGui::Separator();
+        ImGui::Text("Performance: %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+        ImGui::End();
+
+        // Render ImGui over the OpenGL scene
+        ImGui::Render();
+        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData()); // Correct OpenGL2 rendering
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // Limpa a memória ao sair
+    // Cleanup ImGui
+    ImGui_ImplOpenGL2_Shutdown(); // Correct OpenGL2 shutdown
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     delete solarsystem;
     glfwTerminate();
     return 0;

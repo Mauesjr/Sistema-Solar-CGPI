@@ -2,11 +2,12 @@
 #ifndef RENDERIZADOR_HPP
 #define RENDERIZADOR_HPP
 
-#include "../core/SistemaSolar.h" // Importa o núcleo puro para poder ler os dados
+#include "../core/sistemasolar.h" // Importação corrigida para minúsculo
 
 /**
  * @brief Classe responsável pela renderização gráfica do sistema solar.
- * *Ela não guarda estado físico e não possui regras matemáticas do universo. Apenas lê os dados do 
+ * * Esta classe representa a "Casca Imperativa" (Imperative Shell). Ela não guarda
+ * estado físico e não possui regras matemáticas do universo. Apenas lê os dados do 
  * núcleo e executa as chamadas do OpenGL para desenhar os pixels na tela.
  */
 class Renderizador {
@@ -29,7 +30,7 @@ public:
      * Recebe o estado como 'const' para garantir que a renderização jamais 
      * altere a física acidentalmente (Princípio do Functional Core).
      * @param sistema Referência constante (somente leitura) do motor físico.
-     * @param visualScale Multiplicador visual para alterar o tamanho dos planetas na tela.
+     * @param visualScale Multiplicador visual para alterar o tamanho dos astros na tela.
      */
     static void renderizarSistema(const SolarSystem& sistema, float visualScale);
 };

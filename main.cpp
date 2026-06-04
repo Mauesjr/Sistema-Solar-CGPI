@@ -66,20 +66,67 @@ int main(void) {
 
     solarsystem = new SolarSystem(screenWidth, screenHeight);
 
+    // --- NEW VARIABLES FOR PLACEMENT MODE ---
+    bool isPlacementMode = false;
+    float spawnMass = 5.0f;
+    bool autoOrbit = true;
+    float spawnVel[2] = { 0.0f, 0.0f }; // Array for X and Y velocity
+    float spawnColor[3] = { 1.0f, 1.0f, 1.0f }; // Array for RGB color (Default White)
+    // ----------------------------------------
+
     while (!glfwWindowShouldClose(window)) {
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL2_NewFrame(); // Correct OpenGL2 frame setup
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Only move the sun if ImGui is NOT using the mouse (e.g., clicking sliders)
+        // --- UPDATED MOUSE INTERACTION LOGIC ---
         if (!io.WantCaptureMouse) {
-            // Check if the left mouse button is held down
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-                double mouseX, mouseY;
-                glfwGetCursorPos(window, &mouseX, &mouseY);
-                // Update the sun's position directly
-                solarsystem->setSunPosition((float)mouseX, (float)mouseY);
+            if (isPlacementMode) {
+                if (ImGui::IsMouseClicked(0)) {
+                    double mouseX, mouseY;
+                    glfwGetCursorPos(window, &mouseX, &mouseY);
+                    
+                    float finalVx = spawnVel[0];
+                    float finalVy = spawnVel[1];
+
+                    // Mathematically calculate a perfect circular orbit
+                    if (autoOrbit) {
+                        // Assuming you make attractor public or create a getAttractorPos() method
+                        // For this example, let's pretend we have a method: solarsystem->getSunPosX()
+                        // (You'll need to adjust this based on how you expose the sun's position)
+                        
+                        float sunX = solarsystem->getSunPosX();
+                        float sunY = solarsystem->getSunPosY();
+                        
+                        float dx = (float)mouseX - sunX;
+                        float dy = (float)mouseY - sunY;
+                        float distance = std::sqrt(dx*dx + dy*dy);
+                        
+                        if (distance > 0) {
+                            // Orbital velocity formula: v = sqrt(G * M / r)
+                            float v_mag = std::sqrt((solarsystem->gravityMultiplier * solarsystem->sunMass) / distance);
+                            
+                            // Perpendicular vector for circular orbit (-dy, dx) normalized
+                            finalVx = -(dy / distance) * v_mag;
+                            finalVy = (dx / distance) * v_mag;
+                        }
+                    }
+
+                    solarsystem->addBody(
+                        (float)mouseX, (float)mouseY, 
+                        finalVx, finalVy, 
+                        spawnMass, 
+                        spawnColor[0], spawnColor[1], spawnColor[2]
+                    );
+                }
+            } 
+            else {
+                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+                    double mouseX, mouseY;
+                    glfwGetCursorPos(window, &mouseX, &mouseY);
+                    solarsystem->setSunPosition((float)mouseX, (float)mouseY);
+                }
             }
         }
 
@@ -117,6 +164,26 @@ int main(void) {
             solarsystem = new SolarSystem(screenWidth, screenHeight);
         }
 
+
+        ImGui::Separator();
+
+        // New Sandbox Menu
+        ImGui::Text("Sandbox: Body Spawner");
+        ImGui::Checkbox("Enable Placement Mode", &isPlacementMode);
+        
+        if (isPlacementMode) {
+            ImGui::Indent();
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Click anywhere on the screen to spawn!");
+            ImGui::SliderFloat("New Mass", &spawnMass, 0.1f, 50.0f);
+            
+            ImGui::Checkbox("Auto-Calculate Stable Orbit", &autoOrbit);
+            if (!autoOrbit) {
+                ImGui::SliderFloat2("Manual Velocity (X, Y)", spawnVel, -10.0f, 10.0f);
+            }
+            
+            ImGui::ColorEdit3("Body Color", spawnColor);
+            ImGui::Unindent();
+        }
 
         ImGui::Separator();
         ImGui::Text("Performance: %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);

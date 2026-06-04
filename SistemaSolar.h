@@ -193,7 +193,7 @@ public:
                         float distanceSq = force.magSq();
                         
                         // Constrain distance to avoid extreme slingshots
-                        if (distanceSq < 25.0f) distanceSq = 25.0f;
+                        if (distanceSq < 100.0f) distanceSq = 100.0f;
                         if (distanceSq > 250000.0f) distanceSq = 250000.0f;
 
                         float strength = gravityMultiplier * (movers[i].mass * movers[j].mass) / distanceSq;
@@ -243,5 +243,12 @@ public:
             attractor->pos.y = y;
         }
     }
+
+    void addBody(float x, float y, float vx, float vy, float m, float r_c, float g_c, float b_c ) {
+        movers.push_back(Mover(x, y, vx, vy, m, r_c, g_c, b_c));
+    }
+
+    float getSunPosX() const { return attractor->pos.x; }
+    float getSunPosY() const { return attractor->pos.y; }
 };
 #endif // SOLARSYSTEM_HPP

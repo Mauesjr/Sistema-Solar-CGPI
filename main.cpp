@@ -242,10 +242,11 @@ int main(void) {
         ImGui::Text("Global Physics Settings:");
         ImGui::SliderFloat("Gravitational Force (G)", &solarsystem->gravityMultiplier, 0.1f, 10.0f);
         ImGui::SliderFloat("Sun Mass", &solarsystem->sunMass, 50.0f, 1000.0f);
+        ImGui::SliderFloat("Planet Visual Scale", &solarsystem->visualScale, 1.0f, 15.0f);
         
         ImGui::Checkbox("Enable N-Body Gravity", &solarsystem->enableNBody);
-        ImGui::Checkbox("Contain Planets (Screen Bounds)", &solarsystem->containPlanets);
         ImGui::Checkbox("Enable Collisions (Mass Merging)", &solarsystem->enableCollisions);
+        ImGui::Checkbox("Contain Planets (Screen Bounds)", &solarsystem->containPlanets);
         
         if (ImGui::Button("Reset System")) {
             delete solarsystem;

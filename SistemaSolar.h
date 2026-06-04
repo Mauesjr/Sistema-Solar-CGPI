@@ -157,6 +157,8 @@ public:
     bool enableNBody = false;
     bool containPlanets = false; 
     bool enableCollisions = false; // UI Toggle for merging
+    // New variable to decouple graphics from physics
+    float visualScale = 4.0f;
 
     SolarSystem(int screenWidth, int screenHeight) {
         m_screenWidth = (float)screenWidth;
@@ -304,13 +306,15 @@ public:
             glEnd();
         }
         
-        // Draw the planets
+        // Draw the planets applying the visual multiplier
         for (auto& mover : movers) {
-            drawCircle(mover.pos.x, mover.pos.y, mover.r, 20, mover.r_col, mover.g_col, mover.b_col);
+            float renderRadius = mover.r * visualScale;
+            drawCircle(mover.pos.x, mover.pos.y, renderRadius, 20, mover.r_col, mover.g_col, mover.b_col);
         }
                  
-        // Draw the central Sun
-        drawCircle(attractor->pos.x, attractor->pos.y, attractor->r, 40, 1.0f, 0.8f, 0.0f);
+        // Draw the central Sun applying a slightly smaller visual scale so it does not swallow the inner planets
+        float sunRenderRadius = attractor->r * (visualScale * 0.5f);
+        drawCircle(attractor->pos.x, attractor->pos.y, sunRenderRadius, 40, 1.0f, 0.8f, 0.0f);
     }
 
     void onKeyboard(unsigned char key, int x, int y) {}

@@ -7,8 +7,9 @@
 #include <vector>
 #include <cstdlib>
 #include <deque>
+#include <algorithm> // Required for std::remove_if
 
-// Custom Vector structure
+// 1. Custom Vector structure
 struct Vector2 {
     float x, y;
 
@@ -34,24 +35,29 @@ struct Vector2 {
     }
 };
 
-// Mover class representing planets
+// 2. Mover class (The planets)
 class Mover {
 public:
     Vector2 pos, vel, acc;
     float mass, r;
-    float r_col, g_col, b_col;
+    float r_col, g_col, b_col; // Stores the color of the planet (Red, Green, Blue)
+    bool isDead = false; // Flag for collision cleanup
 
     // Trail storage
     std::deque<Vector2> path;
     size_t maxPathLength = 250; 
 
+    // Constructor receiving color parameters
     Mover(float x, float y, float vx, float vy, float m, float r_c, float g_c, float b_c) {
         pos = Vector2(x, y);
         vel = Vector2(vx, vy);
         acc = Vector2(0, 0);
         mass = m;
-        r = 8.0f;
+        
+        // Dynamically calculate radius based on mass for visual accuracy
+        r = std::sqrt(mass) * 3.0f; 
 
+        // Save the chosen color
         r_col = r_c;
         g_col = g_c;
         b_col = b_c;
@@ -74,7 +80,7 @@ public:
     }
 
     void checkEdges(float screenWidth, float screenHeight) {
-        float bounceDamping = -0.8f; 
+        float bounceDamping = -0.8f; // Retain 80% of speed, flip direction
 
         if (pos.x > screenWidth - r) {
             pos.x = screenWidth - r;
@@ -94,7 +100,7 @@ public:
     }
 };
 
-// Attractor class representing the central sun
+// 3. Attractor class (The central Sun)
 class Attractor {
 public:
     Vector2 pos;
@@ -103,6 +109,7 @@ public:
     Attractor(float x, float y, float m) {
         pos = Vector2(x, y);
         mass = m;
+        // VISUAL CHANGE: Multiplied by 1.0f so the Sun does not occupy the entire screen.
         r = std::sqrt(mass) * 1.0f;
     }
 
@@ -110,9 +117,10 @@ public:
         Vector2 force = Vector2::sub(pos, mover.pos);
         float distanceSq = force.magSq();
 
-        if (distanceSq < 25.0f) distanceSq = 25.0f;
+        if (distanceSq < 100.0f) distanceSq = 100.0f;
         if (distanceSq > 250000.0f) distanceSq = 250000.0f;
 
+        // Calculate strength using the dynamic gravity value
         float strength = currentGravity * (mass * mover.mass) / distanceSq;
 
         force.setMag(strength);
@@ -120,7 +128,7 @@ public:
     }
 };
 
-// Main SolarSystem manager
+// 4. Main SolarSystem manager
 class SolarSystem {
 private:
     std::vector<Mover> movers;
@@ -143,10 +151,12 @@ private:
     float m_screenHeight;
 
 public:
+    // UI Exposed Variables
     float gravityMultiplier = 2.0f;
     float sunMass = 300.0f;
     bool enableNBody = false;
-    bool containPlanets = true; 
+    bool containPlanets = false; 
+    bool enableCollisions = false; // UI Toggle for merging
 
     SolarSystem(int screenWidth, int screenHeight) {
         m_screenWidth = (float)screenWidth;
@@ -154,16 +164,19 @@ public:
         float cx = (float)screenWidth / 2.0f;
         float cy = (float)screenHeight / 2.0f;
 
+        // Dynamic central Sun
         attractor = new Attractor(cx, cy, 300);
 
-        movers.push_back(Mover(cx, cy + 30.0f, 4.47f, 0.0f, 2.0f, 0.5f, 0.5f, 0.5f));   
-        movers.push_back(Mover(cx, cy + 50.0f, 3.46f, 0.0f, 4.0f, 0.9f, 0.7f, 0.2f));   
-        movers.push_back(Mover(cx, cy + 70.0f, 2.92f, 0.0f, 5.0f, 0.2f, 0.4f, 1.0f));   
-        movers.push_back(Mover(cx, cy + 90.0f, 2.58f, 0.0f, 3.0f, 0.8f, 0.2f, 0.1f));   
-        movers.push_back(Mover(cx, cy + 120.0f, 2.23f, 0.0f, 25.0f, 0.8f, 0.6f, 0.4f)); 
-        movers.push_back(Mover(cx, cy + 150.0f, 2.00f, 0.0f, 15.0f, 0.9f, 0.8f, 0.6f)); 
-        movers.push_back(Mover(cx, cy + 180.0f, 1.82f, 0.0f, 10.0f, 0.4f, 0.8f, 0.9f)); 
-        movers.push_back(Mover(cx, cy + 210.0f, 1.69f, 0.0f, 9.0f, 0.1f, 0.2f, 0.8f));  
+        // Parameters: X, Y (cy + radius), VelX, VelY, Mass, R, G, B
+        // Distances are expanded. Masses are reduced. Velocities are recalculated for M=1000, G=2.0
+        movers.push_back(Mover(cx, cy + 60.0f,  5.77f, 0.0f, 0.5f, 0.5f, 0.5f, 0.5f)); // Mercury
+        movers.push_back(Mover(cx, cy + 100.0f, 4.47f, 0.0f, 1.0f, 0.9f, 0.7f, 0.2f)); // Venus
+        movers.push_back(Mover(cx, cy + 150.0f, 3.65f, 0.0f, 1.2f, 0.2f, 0.4f, 1.0f)); // Earth
+        movers.push_back(Mover(cx, cy + 200.0f, 3.16f, 0.0f, 0.8f, 0.8f, 0.2f, 0.1f)); // Mars
+        movers.push_back(Mover(cx, cy + 260.0f, 2.77f, 0.0f, 5.0f, 0.8f, 0.6f, 0.4f)); // Jupiter
+        movers.push_back(Mover(cx, cy + 320.0f, 2.50f, 0.0f, 3.0f, 0.9f, 0.8f, 0.6f)); // Saturn
+        movers.push_back(Mover(cx, cy + 380.0f, 2.29f, 0.0f, 2.0f, 0.4f, 0.8f, 0.9f)); // Uranus
+        movers.push_back(Mover(cx, cy + 450.0f, 2.10f, 0.0f, 2.0f, 0.1f, 0.2f, 0.8f)); // Neptune
     }
 
     ~SolarSystem() {
@@ -171,16 +184,23 @@ public:
     }
 
     void onUpdate() {
+        // 1. Update the sun's mass dynamically based on the UI
         attractor->mass = sunMass;
         attractor->r = std::sqrt(sunMass) * 1.0f;
         
+        // 2. The Sun attracts all planets
         for (auto& mover : movers) {
             attractor->attract(mover, gravityMultiplier);
         }
         
+        // 3. N-Body Interaction (Planets attracting planets)
         if (enableNBody) {
             for (size_t i = 0; i < movers.size(); i++) {
+                if (movers[i].isDead) continue;
+
                 for (size_t j = i + 1; j < movers.size(); j++) {
+                    if (movers[j].isDead) continue;
+
                     // Force vector pointing from j to i
                     Vector2 force = Vector2::sub(movers[i].pos, movers[j].pos);
                     float distanceSq = force.magSq();
@@ -200,7 +220,71 @@ public:
                 }
             }   
         }
+
+        // 4. INELASTIC COLLISION LOGIC
+        if (enableCollisions) {
+            // Planet-Planet Collisions
+            for (size_t i = 0; i < movers.size(); i++) {
+                if (movers[i].isDead) continue;
+                
+                for (size_t j = i + 1; j < movers.size(); j++) {
+                    if (movers[j].isDead) continue;
+                    
+                    float distSq = Vector2::sub(movers[i].pos, movers[j].pos).magSq();
+                    float radiusSum = movers[i].r + movers[j].r;
+                    
+                    if (distSq < radiusSum * radiusSum) {
+                        float totalMass = movers[i].mass + movers[j].mass;
+                        
+                        // Conservation of Momentum calculation
+                        Vector2 newVel(
+                            (movers[i].mass * movers[i].vel.x + movers[j].mass * movers[j].vel.x) / totalMass,
+                            (movers[i].mass * movers[i].vel.y + movers[j].mass * movers[j].vel.y) / totalMass
+                        );
+                        
+                        // Center of Mass calculation
+                        Vector2 newPos(
+                            (movers[i].mass * movers[i].pos.x + movers[j].mass * movers[j].pos.x) / totalMass,
+                            (movers[i].mass * movers[i].pos.y + movers[j].mass * movers[j].pos.y) / totalMass
+                        );
+                        
+                        // Color blending
+                        float r_col = (movers[i].r_col * movers[i].mass + movers[j].r_col * movers[j].mass) / totalMass;
+                        float g_col = (movers[i].g_col * movers[i].mass + movers[j].g_col * movers[j].mass) / totalMass;
+                        float b_col = (movers[i].b_col * movers[i].mass + movers[j].b_col * movers[j].mass) / totalMass;
+                        
+                        // Update body I to represent the new merged mass
+                        movers[i].mass = totalMass;
+                        movers[i].vel = newVel;
+                        movers[i].pos = newPos;
+                        movers[i].r_col = r_col;
+                        movers[i].g_col = g_col;
+                        movers[i].b_col = b_col;
+                        movers[i].r = std::sqrt(totalMass) * 3.0f; // Update scale
+                        
+                        movers[j].isDead = true; // Mark body J for deletion
+                    }
+                }
+            }
+            
+            // Sun-Planet Collisions
+            for (auto& mover : movers) {
+                if (mover.isDead) continue;
+                
+                float distSq = Vector2::sub(attractor->pos, mover.pos).magSq();
+                float radiusSum = attractor->r + mover.r;
+                
+                if (distSq < radiusSum * radiusSum) {
+                    sunMass += mover.mass; // Transfer mass to the sun
+                    mover.isDead = true;
+                }
+            }
+            
+            // Memory Cleanup: Erase all dead entities
+            movers.erase(std::remove_if(movers.begin(), movers.end(), [](const Mover& m) { return m.isDead; }), movers.end());
+        }
         
+        // 5. Update kinematics
         for (auto& mover : movers) {
             mover.update();
             if (containPlanets) {
@@ -210,6 +294,7 @@ public:
     }
 
     void onDisplay() {
+        // Draw the trails first 
         for (const auto& mover : movers) {
             glBegin(GL_LINE_STRIP);
             glColor3f(mover.r_col, mover.g_col, mover.b_col);
@@ -219,10 +304,12 @@ public:
             glEnd();
         }
         
+        // Draw the planets
         for (auto& mover : movers) {
             drawCircle(mover.pos.x, mover.pos.y, mover.r, 20, mover.r_col, mover.g_col, mover.b_col);
         }
                  
+        // Draw the central Sun
         drawCircle(attractor->pos.x, attractor->pos.y, attractor->r, 40, 1.0f, 0.8f, 0.0f);
     }
 

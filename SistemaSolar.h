@@ -7,9 +7,8 @@
 #include <vector>
 #include <cstdlib>
 #include <deque>
-#include <algorithm> // Required for std::remove_if
+#include <algorithm>
 
-// 1. Custom Vector structure
 struct Vector2 {
     float x, y;
 
@@ -35,29 +34,46 @@ struct Vector2 {
     }
 };
 
-// 2. Mover class (The planets)
-class Mover {
+enum class BodyType {
+    STAR,
+    PLANET,
+    ASTEROID,
+    BLACK_HOLE
+};
+
+class CelestialBody {
 public:
+    BodyType type;
     Vector2 pos, vel, acc;
     float mass, r;
-    float r_col, g_col, b_col; // Stores the color of the planet (Red, Green, Blue)
-    bool isDead = false; // Flag for collision cleanup
+    float r_col, g_col, b_col;
+    bool isDead = false; 
 
-    // Trail storage
     std::deque<Vector2> path;
     size_t maxPathLength = 250; 
 
-    // Constructor receiving color parameters
-    Mover(float x, float y, float vx, float vy, float m, float r_c, float g_c, float b_c) {
+    CelestialBody(BodyType t, float x, float y, float vx, float vy, float m, float r_c, float g_c, float b_c) {
+        type = t;
         pos = Vector2(x, y);
         vel = Vector2(vx, vy);
         acc = Vector2(0, 0);
         mass = m;
         
-        // Dynamically calculate radius based on mass for visual accuracy
-        r = std::sqrt(mass) * 3.0f; 
+        // DENSITY FIX: Multipliers are now standardized. 
+        // When visualScale = 1.0, the physical radius strictly matches the visual OpenGL render.
+        float radiusMultiplier;
+        if (type == BodyType::STAR) {
+            radiusMultiplier = 1.0f; // Baseline density
+        } else if (type == BodyType::PLANET) {
+            radiusMultiplier = 1.0f; // Baseline density
+        } else if (type == BodyType::ASTEROID) {
+            radiusMultiplier = 0.5f; // Denser rocks
+        } else {
+            radiusMultiplier = 0.2f; // Black hole singularity
+        }
 
-        // Save the chosen color
+        r = std::sqrt(mass) * radiusMultiplier; 
+
         r_col = r_c;
         g_col = g_c;
         b_col = b_c;
@@ -71,68 +87,40 @@ public:
     void update() {
         vel.add(acc);
         pos.add(vel);
-        acc.mult(0);
+        acc.mult(0); 
 
-        // Record current position to the trail
-        path.push_back(pos);
-        // Remove the oldest position if the trail exceeds the maximum length
-        if (path.size() > maxPathLength) path.pop_front();
+        if (type == BodyType::PLANET || type == BodyType::ASTEROID) {
+            path.push_back(pos);
+            if (path.size() > maxPathLength) {
+                path.pop_front();
+            }
+        }
     }
 
     void checkEdges(float screenWidth, float screenHeight) {
-        float bounceDamping = -0.8f; // Retain 80% of speed, flip direction
+        float bounceDamping = -0.8f; 
 
         if (pos.x > screenWidth - r) {
-            pos.x = screenWidth - r;
+            pos.x = screenWidth - r; 
             vel.x *= bounceDamping;
         } else if (pos.x < r) {
-            pos.x = r;
-            vel.x *= bounceDamping;
+            pos.x = r; 
+            vel.x *= bounceDamping; 
         }
 
         if (pos.y > screenHeight - r) {
-            pos.y = screenHeight - r;
-            vel.y *= bounceDamping;
+            pos.y = screenHeight - r; 
+            vel.y *= bounceDamping; 
         } else if (pos.y < r) {
-            pos.y = r;
-            vel.y *= bounceDamping;
+            pos.y = r; 
+            vel.y *= bounceDamping; 
         }
     }
 };
 
-// 3. Attractor class (The central Sun)
-class Attractor {
-public:
-    Vector2 pos;
-    float mass, r;
-
-    Attractor(float x, float y, float m) {
-        pos = Vector2(x, y);
-        mass = m;
-        // VISUAL CHANGE: Multiplied by 1.0f so the Sun does not occupy the entire screen.
-        r = std::sqrt(mass) * 1.0f;
-    }
-
-    void attract(Mover& mover, float currentGravity) {
-        Vector2 force = Vector2::sub(pos, mover.pos);
-        float distanceSq = force.magSq();
-
-        if (distanceSq < 100.0f) distanceSq = 100.0f;
-        if (distanceSq > 250000.0f) distanceSq = 250000.0f;
-
-        // Calculate strength using the dynamic gravity value
-        float strength = currentGravity * (mass * mover.mass) / distanceSq;
-
-        force.setMag(strength);
-        mover.applyForce(force);
-    }
-};
-
-// 4. Main SolarSystem manager
 class SolarSystem {
 private:
-    std::vector<Mover> movers;
-    Attractor* attractor;
+    std::vector<CelestialBody> bodies;
 
     void drawCircle(float cx, float cy, float r, int num_segments, float r_color, float g_color, float b_color) {
         glBegin(GL_TRIANGLE_FAN);
@@ -151,14 +139,11 @@ private:
     float m_screenHeight;
 
 public:
-    // UI Exposed Variables
     float gravityMultiplier = 2.0f;
-    float sunMass = 300.0f;
-    bool enableNBody = false;
+    bool enableNBody = true;
     bool containPlanets = false; 
-    bool enableCollisions = false; // UI Toggle for merging
-    // New variable to decouple graphics from physics
-    float visualScale = 4.0f;
+    bool enableCollisions = true; // Turn ON by default so mass merging works intuitively
+    float visualScale = 1.0f;     // Default to 1.0f so physics and visuals match out-of-the-box
 
     SolarSystem(int screenWidth, int screenHeight) {
         m_screenWidth = (float)screenWidth;
@@ -166,171 +151,195 @@ public:
         float cx = (float)screenWidth / 2.0f;
         float cy = (float)screenHeight / 2.0f;
 
-        // Dynamic central Sun
-        attractor = new Attractor(cx, cy, 300);
+       // SYSTEM ANCHOR FIX: Mass 10000 ensures heavy planets do not eject the sun easily
+        // The Sun
+        bodies.push_back(CelestialBody(BodyType::STAR, cx, cy, 0.0f, 0.0f, 10000.0f, 1.0f, 0.8f, 0.0f));
 
-        // Parameters: X, Y (cy + radius), VelX, VelY, Mass, R, G, B
-        // Distances are expanded. Masses are reduced. Velocities are recalculated for M=1000, G=2.0
-        movers.push_back(Mover(cx, cy + 60.0f,  5.77f, 0.0f, 0.5f, 0.5f, 0.5f, 0.5f)); // Mercury
-        movers.push_back(Mover(cx, cy + 100.0f, 4.47f, 0.0f, 1.0f, 0.9f, 0.7f, 0.2f)); // Venus
-        movers.push_back(Mover(cx, cy + 150.0f, 3.65f, 0.0f, 1.2f, 0.2f, 0.4f, 1.0f)); // Earth
-        movers.push_back(Mover(cx, cy + 200.0f, 3.16f, 0.0f, 0.8f, 0.8f, 0.2f, 0.1f)); // Mars
-        movers.push_back(Mover(cx, cy + 260.0f, 2.77f, 0.0f, 5.0f, 0.8f, 0.6f, 0.4f)); // Jupiter
-        movers.push_back(Mover(cx, cy + 320.0f, 2.50f, 0.0f, 3.0f, 0.9f, 0.8f, 0.6f)); // Saturn
-        movers.push_back(Mover(cx, cy + 380.0f, 2.29f, 0.0f, 2.0f, 0.4f, 0.8f, 0.9f)); // Uranus
-        movers.push_back(Mover(cx, cy + 450.0f, 2.10f, 0.0f, 2.0f, 0.1f, 0.2f, 0.8f)); // Neptune
-    }
+        // Creating the Inner Solar System
+        // Formula for stable orbit velocity: v = sqrt((G * Mass_Sun) / Distance)
+        // Here, G = gravityMultiplier = 2.0f, Mass_Sun = 10000.0f. So G * M = 20000.0f
 
-    ~SolarSystem() {
-        delete attractor;
+        // 1. Mercury (Closest, Fastest, Smallest)
+        // Distance: 60.0f. v = sqrt(20000 / 60) = sqrt(333.33) ≈ 18.25
+        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 60.0f, 18.25f, 0.0f, 0.5f, 0.6f, 0.6f, 0.6f)); // Grey
+
+        // 2. Venus (Slower, Further, Similar to Earth size)
+        // Distance: 100.0f. v = sqrt(20000 / 100) = sqrt(200) ≈ 14.14
+        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 100.0f, 14.14f, 0.0f, 4.0f, 0.9f, 0.7f, 0.2f)); // Orange/Yellow
+
+        // 3. Earth (The baseline)
+        // Distance: 150.0f. v = sqrt(20000 / 150) = sqrt(133.33) ≈ 11.54
+        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 150.0f, 11.54f, 0.0f, 5.0f, 0.2f, 0.4f, 1.0f)); // Blue
+
+        // 4. Mars (Furthest of inner, slowest, smaller than Earth)
+        // Distance: 200.0f. v = sqrt(20000 / 200) = sqrt(100) = 10.0
+        bodies.push_back(CelestialBody(BodyType::PLANET, cx, cy + 200.0f, 10.0f, 0.0f, 3.0f, 0.8f, 0.2f, 0.1f)); // Red
     }
 
     void onUpdate() {
-        // 1. Update the sun's mass dynamically based on the UI
-        attractor->mass = sunMass;
-        attractor->r = std::sqrt(sunMass) * 1.0f;
-        
-        // 2. The Sun attracts all planets
-        for (auto& mover : movers) {
-            attractor->attract(mover, gravityMultiplier);
-        }
-        
-        // 3. N-Body Interaction (Planets attracting planets)
-        if (enableNBody) {
-            for (size_t i = 0; i < movers.size(); i++) {
-                if (movers[i].isDead) continue;
+        for (size_t i = 0; i < bodies.size(); i++) {
+            if (bodies[i].isDead) continue;
 
-                for (size_t j = i + 1; j < movers.size(); j++) {
-                    if (movers[j].isDead) continue;
+            for (size_t j = i + 1; j < bodies.size(); j++) {
+                if (bodies[j].isDead) continue;
 
-                    // Force vector pointing from j to i
-                    Vector2 force = Vector2::sub(movers[i].pos, movers[j].pos);
-                    float distanceSq = force.magSq();
-                    
-                    if (distanceSq < 100.0f) distanceSq = 100.0f;
-                    if (distanceSq > 250000.0f) distanceSq = 250000.0f;
+                Vector2 force = Vector2::sub(bodies[i].pos, bodies[j].pos);
+                float distanceSq = force.magSq();
+                
+                if (distanceSq < 100.0f) distanceSq = 100.0f;
 
-                    float strength = gravityMultiplier * (movers[i].mass * movers[j].mass) / distanceSq;
+                bool swallowed = false;
+
+                // BLACK HOLE PRIORITY ABSORPTION
+                if (bodies[i].type == BodyType::BLACK_HOLE) {
+                    float eventHorizonSq = std::pow(bodies[i].r * 4.0f, 2); 
+                    if (distanceSq < eventHorizonSq) {
+                        Vector2 newVel(
+                            (bodies[i].mass * bodies[i].vel.x + bodies[j].mass * bodies[j].vel.x) / (bodies[i].mass + bodies[j].mass),
+                            (bodies[i].mass * bodies[i].vel.y + bodies[j].mass * bodies[j].vel.y) / (bodies[i].mass + bodies[j].mass)
+                        );
+                        bodies[i].vel = newVel;
+                        bodies[i].mass += bodies[j].mass; 
+                        bodies[i].r = std::sqrt(bodies[i].mass) * 0.2f; 
+                        bodies[j].isDead = true; 
+                        swallowed = true;
+                    }
+                }
+                
+                if (!swallowed && bodies[j].type == BodyType::BLACK_HOLE) {
+                    float eventHorizonSq = std::pow(bodies[j].r * 4.0f, 2);
+                    if (distanceSq < eventHorizonSq) {
+                        Vector2 newVel(
+                            (bodies[j].mass * bodies[j].vel.x + bodies[i].mass * bodies[i].vel.x) / (bodies[j].mass + bodies[i].mass),
+                            (bodies[j].mass * bodies[j].vel.y + bodies[i].mass * bodies[i].vel.y) / (bodies[j].mass + bodies[i].mass)
+                        );
+                        bodies[j].vel = newVel;
+                        bodies[j].mass += bodies[i].mass;
+                        bodies[j].r = std::sqrt(bodies[j].mass) * 0.2f;
+                        bodies[i].isDead = true;
+                        swallowed = true;
+                    }
+                }
+
+                if (swallowed) continue;
+
+                bool isGravitySourceI = bodies[i].type == BodyType::STAR || bodies[i].type == BodyType::BLACK_HOLE;
+                bool isGravitySourceJ = bodies[j].type == BodyType::STAR || bodies[j].type == BodyType::BLACK_HOLE;
+
+                if (enableNBody || isGravitySourceI || isGravitySourceJ) {
+                    float strength = gravityMultiplier * (bodies[i].mass * bodies[j].mass) / distanceSq;
                     force.setMag(strength);
 
-                    // Pull body j towards body i
-                    movers[j].applyForce(force);
-
-                    // Newton's Third Law: Apply equal and opposite force to body i
+                    if (enableNBody || isGravitySourceI) bodies[j].applyForce(force);
+                    
                     Vector2 reverseForce(-force.x, -force.y);
-                    movers[i].applyForce(reverseForce);
+                    if (enableNBody || isGravitySourceJ) bodies[i].applyForce(reverseForce);
                 }
             }   
         }
 
-        // 4. INELASTIC COLLISION LOGIC
+        // STANDARD INELASTIC COLLISIONS
         if (enableCollisions) {
-            // Planet-Planet Collisions
-            for (size_t i = 0; i < movers.size(); i++) {
-                if (movers[i].isDead) continue;
-                
-                for (size_t j = i + 1; j < movers.size(); j++) {
-                    if (movers[j].isDead) continue;
+            for (size_t i = 0; i < bodies.size(); i++) {
+                if (bodies[i].isDead) continue;
+                for (size_t j = i + 1; j < bodies.size(); j++) {
+                    if (bodies[j].isDead) continue;
                     
-                    float distSq = Vector2::sub(movers[i].pos, movers[j].pos).magSq();
-                    float radiusSum = movers[i].r + movers[j].r;
+                    if (bodies[i].type == BodyType::BLACK_HOLE || bodies[j].type == BodyType::BLACK_HOLE) continue;
+                    
+                    float distSq = Vector2::sub(bodies[i].pos, bodies[j].pos).magSq();
+                    
+                    // COLLISION FIX: Directly compare physical radii squared. No visual modifiers allowed here.
+                    float radiusSum = bodies[i].r + bodies[j].r;
                     
                     if (distSq < radiusSum * radiusSum) {
-                        float totalMass = movers[i].mass + movers[j].mass;
+                        float totalMass = bodies[i].mass + bodies[j].mass;
                         
-                        // Conservation of Momentum calculation
                         Vector2 newVel(
-                            (movers[i].mass * movers[i].vel.x + movers[j].mass * movers[j].vel.x) / totalMass,
-                            (movers[i].mass * movers[i].vel.y + movers[j].mass * movers[j].vel.y) / totalMass
+                            (bodies[i].mass * bodies[i].vel.x + bodies[j].mass * bodies[j].vel.x) / totalMass,
+                            (bodies[i].mass * bodies[i].vel.y + bodies[j].mass * bodies[j].vel.y) / totalMass
                         );
-                        
-                        // Center of Mass calculation
                         Vector2 newPos(
-                            (movers[i].mass * movers[i].pos.x + movers[j].mass * movers[j].pos.x) / totalMass,
-                            (movers[i].mass * movers[i].pos.y + movers[j].mass * movers[j].pos.y) / totalMass
+                            (bodies[i].mass * bodies[i].pos.x + bodies[j].mass * bodies[j].pos.x) / totalMass,
+                            (bodies[i].mass * bodies[i].pos.y + bodies[j].mass * bodies[j].pos.y) / totalMass
                         );
                         
-                        // Color blending
-                        float r_col = (movers[i].r_col * movers[i].mass + movers[j].r_col * movers[j].mass) / totalMass;
-                        float g_col = (movers[i].g_col * movers[i].mass + movers[j].g_col * movers[j].mass) / totalMass;
-                        float b_col = (movers[i].b_col * movers[i].mass + movers[j].b_col * movers[j].mass) / totalMass;
+                        float r_col = (bodies[i].r_col * bodies[i].mass + bodies[j].r_col * bodies[j].mass) / totalMass;
+                        float g_col = (bodies[i].g_col * bodies[i].mass + bodies[j].g_col * bodies[j].mass) / totalMass;
+                        float b_col = (bodies[i].b_col * bodies[i].mass + bodies[j].b_col * bodies[j].mass) / totalMass;
+
+                        bodies[i].mass = totalMass;
+                        bodies[i].vel = newVel;
+                        bodies[i].pos = newPos;
+                        bodies[i].r_col = r_col;
+                        bodies[i].g_col = g_col;
+                        bodies[i].b_col = b_col;
                         
-                        // Update body I to represent the new merged mass
-                        movers[i].mass = totalMass;
-                        movers[i].vel = newVel;
-                        movers[i].pos = newPos;
-                        movers[i].r_col = r_col;
-                        movers[i].g_col = g_col;
-                        movers[i].b_col = b_col;
-                        movers[i].r = std::sqrt(totalMass) * 3.0f; // Update scale
-                        
-                        movers[j].isDead = true; // Mark body J for deletion
+                        float radiusMult;
+                        if (bodies[i].type == BodyType::STAR) radiusMult = 1.0f;
+                        else if (bodies[i].type == BodyType::PLANET) radiusMult = 1.0f;
+                        else radiusMult = 0.5f;
+
+                        bodies[i].r = std::sqrt(totalMass) * radiusMult; 
+                        bodies[j].isDead = true; 
                     }
                 }
             }
-            
-            // Sun-Planet Collisions
-            for (auto& mover : movers) {
-                if (mover.isDead) continue;
-                
-                float distSq = Vector2::sub(attractor->pos, mover.pos).magSq();
-                float radiusSum = attractor->r + mover.r;
-                
-                if (distSq < radiusSum * radiusSum) {
-                    sunMass += mover.mass; // Transfer mass to the sun
-                    mover.isDead = true;
-                }
-            }
-            
-            // Memory Cleanup: Erase all dead entities
-            movers.erase(std::remove_if(movers.begin(), movers.end(), [](const Mover& m) { return m.isDead; }), movers.end());
         }
         
-        // 5. Update kinematics
-        for (auto& mover : movers) {
-            mover.update();
-            if (containPlanets) {
-                mover.checkEdges(m_screenWidth, m_screenHeight);
-            }
+        bodies.erase(std::remove_if(bodies.begin(), bodies.end(), [](const CelestialBody& m) { return m.isDead; }), bodies.end());
+        
+        for (auto& body : bodies) {
+            body.update();
+            if (containPlanets) body.checkEdges(m_screenWidth, m_screenHeight);
         }
     }
 
     void onDisplay() {
-        // Draw the trails first 
-        for (const auto& mover : movers) {
-            glBegin(GL_LINE_STRIP);
-            glColor3f(mover.r_col, mover.g_col, mover.b_col);
-            for (const auto& point : mover.path) {
-                glVertex2f(point.x, point.y);
+        for (const auto& body : bodies) {
+            if (body.type == BodyType::PLANET || body.type == BodyType::ASTEROID) {
+                glBegin(GL_LINE_STRIP);
+                glColor3f(body.r_col, body.g_col, body.b_col);
+                for (const auto& point : body.path) glVertex2f(point.x, point.y);
+                glEnd();
             }
-            glEnd();
         }
         
-        // Draw the planets applying the visual multiplier
-        for (auto& mover : movers) {
-            float renderRadius = mover.r * visualScale;
-            drawCircle(mover.pos.x, mover.pos.y, renderRadius, 20, mover.r_col, mover.g_col, mover.b_col);
-        }
-                 
-        // Draw the central Sun applying a slightly smaller visual scale so it does not swallow the inner planets
-        float sunRenderRadius = attractor->r * (visualScale * 0.5f);
-        drawCircle(attractor->pos.x, attractor->pos.y, sunRenderRadius, 40, 1.0f, 0.8f, 0.0f);
-    }
-
-    void onKeyboard(unsigned char key, int x, int y) {}
-
-    void setSunPosition(float x, float y) {
-        if (attractor != nullptr) {
-            attractor->pos.x = x;
-            attractor->pos.y = y;
+        // RENDER ALIGNMENT FIX: 
+        // No hidden modifiers. renderRadius is purely physical radius * explicit visualScale UI modifier.
+        for (auto& body : bodies) {
+            float renderRadius = body.r * visualScale;
+            
+            if (body.type == BodyType::BLACK_HOLE) {
+                // Event Horizon (Draws relative to the physical renderRadius)
+                drawCircle(body.pos.x, body.pos.y, renderRadius * 4.0f, 30, 0.2f, 0.0f, 0.3f);
+                drawCircle(body.pos.x, body.pos.y, renderRadius, 30, 0.0f, 0.0f, 0.0f);
+            } else {
+                drawCircle(body.pos.x, body.pos.y, renderRadius, 30, body.r_col, body.g_col, body.b_col);
+            }
         }
     }
 
-    void addBody(float x, float y, float vx, float vy, float m, float r_c, float g_c, float b_c ) {
-        movers.push_back(Mover(x, y, vx, vy, m, r_c, g_c, b_c));
+    void addBody(BodyType type, float x, float y, float vx, float vy, float m, float r_c, float g_c, float b_c ) {
+        bodies.push_back(CelestialBody(type, x, y, vx, vy, m, r_c, g_c, b_c));
     }
 
-    float getSunPosX() const { return attractor->pos.x; }
-    float getSunPosY() const { return attractor->pos.y; }
+    Vector2 getDominantGravityCenter() const {
+        if (bodies.empty()) return Vector2(0, 0);
+        const CelestialBody* heaviest = &bodies[0];
+        for (const auto& b : bodies) {
+            if (b.mass > heaviest->mass) heaviest = &b;
+        }
+        return heaviest->pos;
+    }
+
+    float getDominantMass() const {
+        if (bodies.empty()) return 0;
+        float maxMass = bodies[0].mass;
+        for (const auto& b : bodies) {
+            if (b.mass > maxMass) maxMass = b.mass;
+        }
+        return maxMass;
+    }
 };
 #endif // SOLARSYSTEM_HPP

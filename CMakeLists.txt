@@ -19,15 +19,18 @@ set(IMGUI_SOURCES
     src/imgui/imgui_impl_opengl2.cpp
 )
 
-# Criar o executável unindo seu código e o ImGui
+# Criar o executável unindo seu código, o núcleo FCIS, a casca e o ImGui
 add_executable(SolarSystem 
-    main.cpp 
+    src/main.cpp 
+    src/core/sistemasolar.cpp
+    src/shell/rendeizador.cpp
     ${IMGUI_SOURCES}
 )
 
 # Incluir os diretórios dos headers
 target_include_directories(SolarSystem PRIVATE 
     src/imgui
+    src  # Adicionado para facilitar as importações relativas
     ${GLFW_INCLUDE_DIRS}
     ${OPENGL_INCLUDE_DIR}
 )

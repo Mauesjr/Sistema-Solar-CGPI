@@ -74,7 +74,10 @@ Aplicacao::~Aplicacao() {
 // ==========================================
 bool Aplicacao::inicializar() {
     if (!glfwInit()) return false;
-
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(0.015f, 0.015f, 0.035f, 1.0f);
+    
     m_window = glfwCreateWindow(m_screenWidth, m_screenHeight, m_titulo, NULL, NULL);
     if (!m_window) {
         glfwTerminate();
@@ -167,7 +170,8 @@ void Aplicacao::processarEntrada() {
                 else if (isLeftMouseButtonDown && m_isDragging) {
                     double mouseX, mouseY;
                     glfwGetCursorPos(m_window, &mouseX, &mouseY);
-                    converterTelaParaMundo(mouseX, mouseY, m_dragCurrentX, m_dragCurrentY); 
+                    converterTelaParaMundo(mouseX, mouseY, m_dragCurrentX, m_dragCurrentY);
+                    calcularPrevisaoTrajetoria();
                 } 
                 else if (!isLeftMouseButtonDown && m_wasLeftMouseButtonDown && m_isDragging) {
                     m_isDragging = false;
@@ -228,9 +232,29 @@ void Aplicacao::desenharInterfaceUsuario() {
         ImGui::Indent();
         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Left-Click & Drag to spawn!");
         
-        // Menu Dropdown adicionado pelo colega
+        
         const char* bodyTypes[] = { "Star", "Planet", "Asteroid", "Black Hole" };
-        ImGui::Combo("Body Type", &m_selectedBodyType, bodyTypes, IM_ARRAYSIZE(bodyTypes));
+        if (ImGui::Combo("Body Type", &m_selectedBodyType, bodyTypes, IM_ARRAYSIZE(bodyTypes))) {
+
+            switch (m_selectedBodyType) {
+            case 0: // Star
+                m_spawnMass = 500.0f;
+                m_spawnColor[0] = 1.0f; m_spawnColor[1] = 0.8f; m_spawnColor[2] = 0.0f;
+                break;
+            case 1: // Planet
+                m_spawnMass = 5.0f;
+                m_spawnColor[0] = 0.5f; m_spawnColor[1] = 0.5f; m_spawnColor[2] = 0.5f;
+                break;
+            case 2: // Asteroid
+                m_spawnMass = 0.5f;
+                m_spawnColor[0] = 0.6f; m_spawnColor[1] = 0.6f; m_spawnColor[2] = 0.6f;
+                break;
+            case 3: // Black Hole
+                m_spawnMass = 2000.0f; // Muito pesado!
+                m_spawnColor[0] = 0.0f; m_spawnColor[1] = 0.0f; m_spawnColor[2] = 0.0f;
+                break;
+            }
+        }
 
         ImGui::SliderFloat("New Mass", &m_spawnMass, 0.1f, 1000.0f);
         
@@ -295,6 +319,14 @@ void Aplicacao::executarLoop() {
             glVertex2f(m_dragCurrentX, m_dragCurrentY);
             glEnd();
         }
+        if (m_isDragging && !m_predictedPath.empty()) {
+            glBegin(GL_LINE_STRIP);
+            glColor4f(1.0f, 1.0f, 1.0f, 0.5f); // Branco, 50% de transparência
+            for (const auto& p : m_predictedPath) {
+                glVertex2f(p.x, p.y);
+            }
+            glEnd();
+        }
 
         desenharInterfaceUsuario();
         ImGui::Render();
@@ -302,5 +334,43 @@ void Aplicacao::executarLoop() {
 
         glfwSwapBuffers(m_window);
         glfwPollEvents();
+    }
+}
+
+void Aplicacao::calcularPrevisaoTrajetoria() {
+    m_predictedPath.clear();
+
+    // 1. Pega os dados básicos
+    float sunX = m_sistemaSolar->getDominantGravityCenter().x;
+    float sunY = m_sistemaSolar->getDominantGravityCenter().y;
+    float sunMass = m_sistemaSolar->getDominantMass();
+    float G = m_sistemaSolar->gravityMultiplier;
+
+    // 2. Define a velocidade inicial baseada no estilingue
+    float slingshotMultiplier = 0.05f;
+    Vector2 pos(m_dragStartX, m_dragStartY);
+    Vector2 vel((m_dragStartX - m_dragCurrentX) * slingshotMultiplier, 
+                (m_dragStartY - m_dragCurrentY) * slingshotMultiplier);
+
+    // 3. Simula 200 passos no futuro
+    for (int i = 0; i < 200; i++) {
+        float dx = sunX - pos.x;
+        float dy = sunY - pos.y;
+        float distSq = dx*dx + dy*dy;
+        if (distSq < 100.0f) distSq = 100.0f; // Softening
+
+        // Aceleração = (G * M) / r^2
+        float acc = (G * sunMass) / distSq;
+        
+        // Aplica direção da aceleração
+        float dist = std::sqrt(distSq);
+        vel.x += (dx / dist) * acc;
+        vel.y += (dy / dist) * acc;
+
+        // Atualiza posição
+        pos.x += vel.x;
+        pos.y += vel.y;
+
+        m_predictedPath.push_back(pos);
     }
 }

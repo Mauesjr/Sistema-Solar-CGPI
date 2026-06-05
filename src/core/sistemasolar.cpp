@@ -1,6 +1,7 @@
 #include "sistemasolar.h"
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 // ==========================================
 // 1. Implementação do Vector2
@@ -27,6 +28,7 @@ Vector2 Vector2::sub(const Vector2& v1, const Vector2& v2) {
 // ==========================================
 // 2. Implementação do CelestialBody
 // ==========================================
+
 CelestialBody::CelestialBody(BodyType t, float x, float y, float vx, float vy, float m, float r_c, float g_c, float b_c) {
     type = t;
     pos = Vector2(x, y);
@@ -133,7 +135,7 @@ void SolarSystem::onUpdate() {
 
             // Prioridade de Absorção: Horizonte de Eventos do Buraco Negro
             if (bodies[i].type == BodyType::BLACK_HOLE) {
-                float eventHorizonSq = std::pow(bodies[i].r * 4.0f, 2); 
+                float eventHorizonSq = std::pow(bodies[i].r * 4.0f, 2);
                 if (distanceSq < eventHorizonSq) {
                     Vector2 newVel(
                         (bodies[i].mass * bodies[i].vel.x + bodies[j].mass * bodies[j].vel.x) / (bodies[i].mass + bodies[j].mass),

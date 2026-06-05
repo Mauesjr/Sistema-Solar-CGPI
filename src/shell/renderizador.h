@@ -24,6 +24,12 @@ private:
      */
     static void drawCircle(float cx, float cy, float r, int num_segments, float r_color, float g_color, float b_color);
 
+    /**
+     * @brief Desenha um campo estelar processual (Starfield) no fundo da tela.
+     */
+    static void desenharEstrelasDeFundo();
+
+
 public:
     /**
      * @brief Renderiza todo o estado atual do Sistema Solar.

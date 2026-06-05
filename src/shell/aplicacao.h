@@ -7,7 +7,6 @@
 
 /**
  * @brief Classe que gerencia a janela, a entrada do usuário e o loop principal.
- * Pertence à Casca Imperativa (Shell).
  */
 class Aplicacao {
 private:
@@ -45,6 +44,8 @@ private:
     bool m_wasLeftMouseButtonDown;
     bool m_wasRightMouseButtonDown;
 
+    std::vector<Vector2> m_predictedPath;
+
     // ==========================================
     // Funções Internas de Controle
     // ==========================================
@@ -54,6 +55,11 @@ private:
      */
     void processarEntrada();
     
+    /**
+     * @brief Calcula a trajetória baseada na física atual (Universo Paralelo).
+     */
+    void calcularPrevisaoTrajetoria();
+
     /**
      * @brief Constrói os painéis e botões do ImGui.
      */
@@ -97,5 +103,7 @@ public:
      */
     void executarLoop();
 };
+
+
 
 #endif // APLICACAO_HPP

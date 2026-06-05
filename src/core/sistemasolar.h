@@ -41,8 +41,8 @@ enum class BodyType {
 
 /**
  * @brief Classe unificada que representa qualquer corpo celeste no sistema.
- * * Substitui as antigas classes Mover e Attractor. Armazena dados físicos
- * como posição, velocidade, aceleração, massa e o tipo físico do corpo.
+ * Armazena dados físicos como posição, velocidade, aceleração, massa e o 
+ * tipo físico do corpo.
  */
 class CelestialBody {
 public:

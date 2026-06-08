@@ -1,0 +1,93 @@
+\doxysection{Sistema\+Solar.\+h File Reference}
+\hypertarget{_sistema_solar_8h}{}\label{_sistema_solar_8h}\index{SistemaSolar.h@{SistemaSolar.h}}
+{\ttfamily \#include $<$GLFW/glfw3.\+h$>$}\newline
+{\ttfamily \#include $<$cmath$>$}\newline
+{\ttfamily \#include $<$vector$>$}\newline
+{\ttfamily \#include $<$cstdlib$>$}\newline
+{\ttfamily \#include $<$deque$>$}\newline
+{\ttfamily \#include $<$algorithm$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_vector2}{Vector2}}
+\begin{DoxyCompactList}\small\item\em Estrutura matemática bidimensional para manipulação de vetores espaciais e físicos. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_celestial_body}{Celestial\+Body}}
+\begin{DoxyCompactList}\small\item\em Classe unificada que representa qualquer corpo celeste no sistema. Armazena dados físicos como posição, velocidade, aceleração, massa e o tipo físico do corpo. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_solar_system}{Solar\+System}}
+\begin{DoxyCompactList}\small\item\em Gerenciador central da física do Sistema Solar. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{_sistema_solar_8h_ac90d233562ba2c532846c9eb787436a7}{SOLARSYSTEM\+\_\+\+HPP}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum class \mbox{\hyperlink{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2}{Body\+Type}} \{ \newline
+\mbox{\hyperlink{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a8ab2630ada18b94a005a0c5399d9d483}{STAR}}
+, \mbox{\hyperlink{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a9c1da5846bffd73cec6d67eca13185d0}{PLANET}}
+, \mbox{\hyperlink{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a95cffc728a2bee94a6834fe53aeb921b}{ASTEROID}}
+, \mbox{\hyperlink{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a695cfadd1340e5546ab50ad2d2aa344e}{BLACK\+\_\+\+HOLE}}
+, \newline
+\mbox{\hyperlink{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a8ab2630ada18b94a005a0c5399d9d483}{STAR}}
+, \mbox{\hyperlink{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a9c1da5846bffd73cec6d67eca13185d0}{PLANET}}
+, \mbox{\hyperlink{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a95cffc728a2bee94a6834fe53aeb921b}{ASTEROID}}
+, \mbox{\hyperlink{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a695cfadd1340e5546ab50ad2d2aa344e}{BLACK\+\_\+\+HOLE}}
+ \}
+\end{DoxyCompactItemize}
+
+
+\label{doc-define-members}
+\Hypertarget{_sistema_solar_8h_doc-define-members}
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{_sistema_solar_8h_ac90d233562ba2c532846c9eb787436a7}\index{SistemaSolar.h@{SistemaSolar.h}!SOLARSYSTEM\_HPP@{SOLARSYSTEM\_HPP}}
+\index{SOLARSYSTEM\_HPP@{SOLARSYSTEM\_HPP}!SistemaSolar.h@{SistemaSolar.h}}
+\doxysubsubsection{\texorpdfstring{SOLARSYSTEM\_HPP}{SOLARSYSTEM\_HPP}}
+{\footnotesize\ttfamily \label{_sistema_solar_8h_ac90d233562ba2c532846c9eb787436a7} 
+\#define SOLARSYSTEM\+\_\+\+HPP}
+
+
+
+\label{doc-enum-members}
+\Hypertarget{_sistema_solar_8h_doc-enum-members}
+\doxysubsection{Enumeration Type Documentation}
+\Hypertarget{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2}\index{SistemaSolar.h@{SistemaSolar.h}!BodyType@{BodyType}}
+\index{BodyType@{BodyType}!SistemaSolar.h@{SistemaSolar.h}}
+\doxysubsubsection{\texorpdfstring{BodyType}{BodyType}}
+{\footnotesize\ttfamily \label{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2} 
+enum class \mbox{\hyperlink{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2}{Body\+Type}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{STAR@{STAR}!SistemaSolar.h@{SistemaSolar.h}}\index{SistemaSolar.h@{SistemaSolar.h}!STAR@{STAR}}}\Hypertarget{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a8ab2630ada18b94a005a0c5399d9d483}\label{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a8ab2630ada18b94a005a0c5399d9d483} 
+STAR&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{PLANET@{PLANET}!SistemaSolar.h@{SistemaSolar.h}}\index{SistemaSolar.h@{SistemaSolar.h}!PLANET@{PLANET}}}\Hypertarget{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a9c1da5846bffd73cec6d67eca13185d0}\label{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a9c1da5846bffd73cec6d67eca13185d0} 
+PLANET&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ASTEROID@{ASTEROID}!SistemaSolar.h@{SistemaSolar.h}}\index{SistemaSolar.h@{SistemaSolar.h}!ASTEROID@{ASTEROID}}}\Hypertarget{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a95cffc728a2bee94a6834fe53aeb921b}\label{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a95cffc728a2bee94a6834fe53aeb921b} 
+ASTEROID&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{BLACK\_HOLE@{BLACK\_HOLE}!SistemaSolar.h@{SistemaSolar.h}}\index{SistemaSolar.h@{SistemaSolar.h}!BLACK\_HOLE@{BLACK\_HOLE}}}\Hypertarget{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a695cfadd1340e5546ab50ad2d2aa344e}\label{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a695cfadd1340e5546ab50ad2d2aa344e} 
+BLACK\+\_\+\+HOLE&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{STAR@{STAR}!SistemaSolar.h@{SistemaSolar.h}}\index{SistemaSolar.h@{SistemaSolar.h}!STAR@{STAR}}}\Hypertarget{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a8ab2630ada18b94a005a0c5399d9d483}\label{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a8ab2630ada18b94a005a0c5399d9d483} 
+STAR&Estrela (Densidade padrão, atua como fonte de gravidade) \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{PLANET@{PLANET}!SistemaSolar.h@{SistemaSolar.h}}\index{SistemaSolar.h@{SistemaSolar.h}!PLANET@{PLANET}}}\Hypertarget{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a9c1da5846bffd73cec6d67eca13185d0}\label{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a9c1da5846bffd73cec6d67eca13185d0} 
+PLANET&Planeta (Densidade padrão) \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ASTEROID@{ASTEROID}!SistemaSolar.h@{SistemaSolar.h}}\index{SistemaSolar.h@{SistemaSolar.h}!ASTEROID@{ASTEROID}}}\Hypertarget{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a95cffc728a2bee94a6834fe53aeb921b}\label{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a95cffc728a2bee94a6834fe53aeb921b} 
+ASTEROID&Asteroide (Alta densidade, rochoso) \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{BLACK\_HOLE@{BLACK\_HOLE}!SistemaSolar.h@{SistemaSolar.h}}\index{SistemaSolar.h@{SistemaSolar.h}!BLACK\_HOLE@{BLACK\_HOLE}}}\Hypertarget{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a695cfadd1340e5546ab50ad2d2aa344e}\label{_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2a695cfadd1340e5546ab50ad2d2aa344e} 
+BLACK\+\_\+\+HOLE&Buraco Negro (Singularidade, densidade extrema, absorve tudo) \\
+\hline
+
+\end{DoxyEnumFields}

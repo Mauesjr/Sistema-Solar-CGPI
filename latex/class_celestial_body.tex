@@ -1,0 +1,299 @@
+\doxysection{Celestial\+Body Class Reference}
+\hypertarget{class_celestial_body}{}\label{class_celestial_body}\index{CelestialBody@{CelestialBody}}
+
+
+Classe unificada que representa qualquer corpo celeste no sistema. Armazena dados físicos como posição, velocidade, aceleração, massa e o tipo físico do corpo.  
+
+
+
+
+{\ttfamily \#include $<$Sistema\+Solar.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_celestial_body_a450f202416e577d93a3c162b5caa06b8}{Celestial\+Body}} (\mbox{\hyperlink{src_2core_2_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2}{Body\+Type}} t, float x, float y, float vx, float vy, float m, float r\+\_\+c, float g\+\_\+c, float b\+\_\+c)
+\item 
+void \mbox{\hyperlink{class_celestial_body_a3f27def72740dbe28ec4af001123de05}{apply\+Force}} (\mbox{\hyperlink{struct_vector2}{Vector2}} force)
+\item 
+void \mbox{\hyperlink{class_celestial_body_acfa64bf012b23ab99dde9b6bddd2240b}{update}} ()
+\item 
+void \mbox{\hyperlink{class_celestial_body_aade2ed4395153a647eeca9b3f1905ea0}{check\+Edges}} (float screen\+Width, float screen\+Height)
+\item 
+\mbox{\hyperlink{class_celestial_body_a450f202416e577d93a3c162b5caa06b8}{Celestial\+Body}} (\mbox{\hyperlink{src_2core_2_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2}{Body\+Type}} t, float x, float y, float vx, float vy, float m, float r\+\_\+c, float g\+\_\+c, float b\+\_\+c)
+\begin{DoxyCompactList}\small\item\em Instancia um novo corpo celeste. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_celestial_body_a3f27def72740dbe28ec4af001123de05}{apply\+Force}} (\mbox{\hyperlink{struct_vector2}{Vector2}} force)
+\begin{DoxyCompactList}\small\item\em Aplica uma força externa ao corpo (Segunda Lei de Newton). \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_celestial_body_acfa64bf012b23ab99dde9b6bddd2240b}{update}} ()
+\begin{DoxyCompactList}\small\item\em Atualiza a física do corpo (Integração de Euler). \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_celestial_body_aade2ed4395153a647eeca9b3f1905ea0}{check\+Edges}} (float screen\+Width, float screen\+Height)
+\begin{DoxyCompactList}\small\item\em Verifica colisão com as bordas da tela e inverte a velocidade se necessário. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{src_2core_2_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2}{Body\+Type}} \mbox{\hyperlink{class_celestial_body_a31ecef158a58c15335b3ed77cbd77eb2}{type}}
+\begin{DoxyCompactList}\small\item\em Tipo físico do corpo celeste. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{struct_vector2}{Vector2}} \mbox{\hyperlink{class_celestial_body_a3bbd6c3c3bd7d5011e75f793acc9c284}{pos}}
+\begin{DoxyCompactList}\small\item\em Posição atual do corpo no espaço 2D. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{struct_vector2}{Vector2}} \mbox{\hyperlink{class_celestial_body_a37824c001328ac9a6d7e599c33c8e246}{vel}}
+\begin{DoxyCompactList}\small\item\em Velocidade atual do corpo. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{struct_vector2}{Vector2}} \mbox{\hyperlink{class_celestial_body_a16e641d446b7faeb63eb9d5c8d9352f4}{acc}}
+\begin{DoxyCompactList}\small\item\em Aceleração atual do corpo. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{class_celestial_body_a28bf9e985793695da656e14624a505ac}{mass}}
+\begin{DoxyCompactList}\small\item\em Massa do corpo. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{class_celestial_body_ac3e986625c6578f8c8b5bcc81152154f}{r}}
+\begin{DoxyCompactList}\small\item\em Raio físico do corpo (calculado pela massa e tipo) \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{class_celestial_body_a85eb8cc7221f32dbed6aa04e56534a2d}{r\+\_\+col}}
+\begin{DoxyCompactList}\small\item\em Componente de cor Vermelha (Red) para o renderizador. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{class_celestial_body_a9d189a4ac9a982a848a954b55acb2ac4}{g\+\_\+col}}
+\begin{DoxyCompactList}\small\item\em Componente de cor Verde (Green) para o renderizador. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{class_celestial_body_ab893a64abb36a74148a8f0e53abc80b0}{b\+\_\+col}}
+\begin{DoxyCompactList}\small\item\em Componente de cor Azul (Blue) para o renderizador. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{class_celestial_body_a43572a8994741e92e87742a5b77d0a15}{is\+Dead}} = false
+\begin{DoxyCompactList}\small\item\em Flag que indica se o corpo colidiu e deve ser removido da simulação. \end{DoxyCompactList}\item 
+std\+::deque$<$ \mbox{\hyperlink{struct_vector2}{Vector2}} $>$ \mbox{\hyperlink{class_celestial_body_a8769fe59bdf2af83fed44d6bcaae9d69}{path}}
+\begin{DoxyCompactList}\small\item\em Fila que armazena as últimas posições para gerar o rastro. \end{DoxyCompactList}\item 
+size\+\_\+t \mbox{\hyperlink{class_celestial_body_a824f0678c57dcfd602596639610d250a}{max\+Path\+Length}} = 250
+\begin{DoxyCompactList}\small\item\em Tamanho máximo do rastro antes de apagar posições antigas. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Classe unificada que representa qualquer corpo celeste no sistema. Armazena dados físicos como posição, velocidade, aceleração, massa e o tipo físico do corpo. 
+
+\label{doc-constructors}
+\Hypertarget{class_celestial_body_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_celestial_body_a450f202416e577d93a3c162b5caa06b8}\index{CelestialBody@{CelestialBody}!CelestialBody@{CelestialBody}}
+\index{CelestialBody@{CelestialBody}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{CelestialBody()}{CelestialBody()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_celestial_body_a450f202416e577d93a3c162b5caa06b8} 
+Celestial\+Body\+::\+Celestial\+Body (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{src_2core_2_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2}{Body\+Type}}}]{t}{, }\item[{float}]{x}{, }\item[{float}]{y}{, }\item[{float}]{vx}{, }\item[{float}]{vy}{, }\item[{float}]{m}{, }\item[{float}]{r\+\_\+c}{, }\item[{float}]{g\+\_\+c}{, }\item[{float}]{b\+\_\+c}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{class_celestial_body_a450f202416e577d93a3c162b5caa06b8}\index{CelestialBody@{CelestialBody}!CelestialBody@{CelestialBody}}
+\index{CelestialBody@{CelestialBody}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{CelestialBody()}{CelestialBody()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_celestial_body_a450f202416e577d93a3c162b5caa06b8} 
+Celestial\+Body\+::\+Celestial\+Body (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{src_2core_2_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2}{Body\+Type}}}]{t}{, }\item[{float}]{x}{, }\item[{float}]{y}{, }\item[{float}]{vx}{, }\item[{float}]{vy}{, }\item[{float}]{m}{, }\item[{float}]{r\+\_\+c}{, }\item[{float}]{g\+\_\+c}{, }\item[{float}]{b\+\_\+c}{}\end{DoxyParamCaption})}
+
+
+
+Instancia um novo corpo celeste. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em t} & Tipo do corpo (Estrela, Planeta, Asteroide ou Buraco Negro). \\
+\hline
+{\em x} & Posição inicial no eixo X. \\
+\hline
+{\em y} & Posição inicial no eixo Y. \\
+\hline
+{\em vx} & Velocidade inicial no eixo X. \\
+\hline
+{\em vy} & Velocidade inicial no eixo Y. \\
+\hline
+{\em m} & Massa do corpo. \\
+\hline
+{\em r\+\_\+c} & Cor vermelha (0.\+0 a 1.\+0). \\
+\hline
+{\em g\+\_\+c} & Cor verde (0.\+0 a 1.\+0). \\
+\hline
+{\em b\+\_\+c} & Cor azul (0.\+0 a 1.\+0). \\
+\hline
+\end{DoxyParams}
+
+
+\label{doc-func-members}
+\Hypertarget{class_celestial_body_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_celestial_body_a3f27def72740dbe28ec4af001123de05}\index{CelestialBody@{CelestialBody}!applyForce@{applyForce}}
+\index{applyForce@{applyForce}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{applyForce()}{applyForce()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_celestial_body_a3f27def72740dbe28ec4af001123de05} 
+void Celestial\+Body\+::apply\+Force (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_vector2}{Vector2}}}]{force}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{class_celestial_body_a3f27def72740dbe28ec4af001123de05}\index{CelestialBody@{CelestialBody}!applyForce@{applyForce}}
+\index{applyForce@{applyForce}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{applyForce()}{applyForce()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_celestial_body_a3f27def72740dbe28ec4af001123de05} 
+void Celestial\+Body\+::apply\+Force (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_vector2}{Vector2}}}]{force}{}\end{DoxyParamCaption})}
+
+
+
+Aplica uma força externa ao corpo (Segunda Lei de Newton). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em force} & O vetor de força a ser aplicado. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_celestial_body_aade2ed4395153a647eeca9b3f1905ea0}\index{CelestialBody@{CelestialBody}!checkEdges@{checkEdges}}
+\index{checkEdges@{checkEdges}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{checkEdges()}{checkEdges()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_celestial_body_aade2ed4395153a647eeca9b3f1905ea0} 
+void Celestial\+Body\+::check\+Edges (\begin{DoxyParamCaption}\item[{float}]{screen\+Width}{, }\item[{float}]{screen\+Height}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{class_celestial_body_aade2ed4395153a647eeca9b3f1905ea0}\index{CelestialBody@{CelestialBody}!checkEdges@{checkEdges}}
+\index{checkEdges@{checkEdges}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{checkEdges()}{checkEdges()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_celestial_body_aade2ed4395153a647eeca9b3f1905ea0} 
+void Celestial\+Body\+::check\+Edges (\begin{DoxyParamCaption}\item[{float}]{screen\+Width}{, }\item[{float}]{screen\+Height}{}\end{DoxyParamCaption})}
+
+
+
+Verifica colisão com as bordas da tela e inverte a velocidade se necessário. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em screen\+Width} & A largura do espaço da simulação. \\
+\hline
+{\em screen\+Height} & A altura do espaço da simulação. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_celestial_body_acfa64bf012b23ab99dde9b6bddd2240b}\index{CelestialBody@{CelestialBody}!update@{update}}
+\index{update@{update}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{update()}{update()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_celestial_body_acfa64bf012b23ab99dde9b6bddd2240b} 
+void Celestial\+Body\+::update (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{class_celestial_body_acfa64bf012b23ab99dde9b6bddd2240b}\index{CelestialBody@{CelestialBody}!update@{update}}
+\index{update@{update}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{update()}{update()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_celestial_body_acfa64bf012b23ab99dde9b6bddd2240b} 
+void Celestial\+Body\+::update (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Atualiza a física do corpo (Integração de Euler). 
+
+
+
+\label{doc-variable-members}
+\Hypertarget{class_celestial_body_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{class_celestial_body_a16e641d446b7faeb63eb9d5c8d9352f4}\index{CelestialBody@{CelestialBody}!acc@{acc}}
+\index{acc@{acc}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{acc}{acc}}
+{\footnotesize\ttfamily \label{class_celestial_body_a16e641d446b7faeb63eb9d5c8d9352f4} 
+\mbox{\hyperlink{struct_vector2}{Vector2}} Celestial\+Body\+::acc}
+
+
+
+Aceleração atual do corpo. 
+
+\Hypertarget{class_celestial_body_ab893a64abb36a74148a8f0e53abc80b0}\index{CelestialBody@{CelestialBody}!b\_col@{b\_col}}
+\index{b\_col@{b\_col}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{b\_col}{b\_col}}
+{\footnotesize\ttfamily \label{class_celestial_body_ab893a64abb36a74148a8f0e53abc80b0} 
+float Celestial\+Body\+::b\+\_\+col}
+
+
+
+Componente de cor Azul (Blue) para o renderizador. 
+
+\Hypertarget{class_celestial_body_a9d189a4ac9a982a848a954b55acb2ac4}\index{CelestialBody@{CelestialBody}!g\_col@{g\_col}}
+\index{g\_col@{g\_col}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{g\_col}{g\_col}}
+{\footnotesize\ttfamily \label{class_celestial_body_a9d189a4ac9a982a848a954b55acb2ac4} 
+float Celestial\+Body\+::g\+\_\+col}
+
+
+
+Componente de cor Verde (Green) para o renderizador. 
+
+\Hypertarget{class_celestial_body_a43572a8994741e92e87742a5b77d0a15}\index{CelestialBody@{CelestialBody}!isDead@{isDead}}
+\index{isDead@{isDead}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{isDead}{isDead}}
+{\footnotesize\ttfamily \label{class_celestial_body_a43572a8994741e92e87742a5b77d0a15} 
+bool Celestial\+Body\+::is\+Dead = false}
+
+
+
+Flag que indica se o corpo colidiu e deve ser removido da simulação. 
+
+\Hypertarget{class_celestial_body_a28bf9e985793695da656e14624a505ac}\index{CelestialBody@{CelestialBody}!mass@{mass}}
+\index{mass@{mass}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{mass}{mass}}
+{\footnotesize\ttfamily \label{class_celestial_body_a28bf9e985793695da656e14624a505ac} 
+float Celestial\+Body\+::mass}
+
+
+
+Massa do corpo. 
+
+\Hypertarget{class_celestial_body_a824f0678c57dcfd602596639610d250a}\index{CelestialBody@{CelestialBody}!maxPathLength@{maxPathLength}}
+\index{maxPathLength@{maxPathLength}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{maxPathLength}{maxPathLength}}
+{\footnotesize\ttfamily \label{class_celestial_body_a824f0678c57dcfd602596639610d250a} 
+size\+\_\+t Celestial\+Body\+::max\+Path\+Length = 250}
+
+
+
+Tamanho máximo do rastro antes de apagar posições antigas. 
+
+\Hypertarget{class_celestial_body_a8769fe59bdf2af83fed44d6bcaae9d69}\index{CelestialBody@{CelestialBody}!path@{path}}
+\index{path@{path}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{path}{path}}
+{\footnotesize\ttfamily \label{class_celestial_body_a8769fe59bdf2af83fed44d6bcaae9d69} 
+std\+::deque$<$ \mbox{\hyperlink{struct_vector2}{Vector2}} $>$ Celestial\+Body\+::path}
+
+
+
+Fila que armazena as últimas posições para gerar o rastro. 
+
+\Hypertarget{class_celestial_body_a3bbd6c3c3bd7d5011e75f793acc9c284}\index{CelestialBody@{CelestialBody}!pos@{pos}}
+\index{pos@{pos}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{pos}{pos}}
+{\footnotesize\ttfamily \label{class_celestial_body_a3bbd6c3c3bd7d5011e75f793acc9c284} 
+\mbox{\hyperlink{struct_vector2}{Vector2}} Celestial\+Body\+::pos}
+
+
+
+Posição atual do corpo no espaço 2D. 
+
+\Hypertarget{class_celestial_body_ac3e986625c6578f8c8b5bcc81152154f}\index{CelestialBody@{CelestialBody}!r@{r}}
+\index{r@{r}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{r}{r}}
+{\footnotesize\ttfamily \label{class_celestial_body_ac3e986625c6578f8c8b5bcc81152154f} 
+float Celestial\+Body\+::r}
+
+
+
+Raio físico do corpo (calculado pela massa e tipo) 
+
+\Hypertarget{class_celestial_body_a85eb8cc7221f32dbed6aa04e56534a2d}\index{CelestialBody@{CelestialBody}!r\_col@{r\_col}}
+\index{r\_col@{r\_col}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{r\_col}{r\_col}}
+{\footnotesize\ttfamily \label{class_celestial_body_a85eb8cc7221f32dbed6aa04e56534a2d} 
+float Celestial\+Body\+::r\+\_\+col}
+
+
+
+Componente de cor Vermelha (Red) para o renderizador. 
+
+\Hypertarget{class_celestial_body_a31ecef158a58c15335b3ed77cbd77eb2}\index{CelestialBody@{CelestialBody}!type@{type}}
+\index{type@{type}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{type}{type}}
+{\footnotesize\ttfamily \label{class_celestial_body_a31ecef158a58c15335b3ed77cbd77eb2} 
+\mbox{\hyperlink{src_2core_2_sistema_solar_8h_acf0ce63e34327e5bc336f9fe3d2d47a2}{Body\+Type}} Celestial\+Body\+::type}
+
+
+
+Tipo físico do corpo celeste. 
+
+\Hypertarget{class_celestial_body_a37824c001328ac9a6d7e599c33c8e246}\index{CelestialBody@{CelestialBody}!vel@{vel}}
+\index{vel@{vel}!CelestialBody@{CelestialBody}}
+\doxysubsubsection{\texorpdfstring{vel}{vel}}
+{\footnotesize\ttfamily \label{class_celestial_body_a37824c001328ac9a6d7e599c33c8e246} 
+\mbox{\hyperlink{struct_vector2}{Vector2}} Celestial\+Body\+::vel}
+
+
+
+Velocidade atual do corpo. 
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{_sistema_solar_8h}{Sistema\+Solar.\+h}}\item 
+src/core/\mbox{\hyperlink{src_2core_2_sistema_solar_8h}{sistemasolar.\+h}}\item 
+src/core/\mbox{\hyperlink{sistemasolar_8cpp}{sistemasolar.\+cpp}}\end{DoxyCompactItemize}

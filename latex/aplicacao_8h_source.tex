@@ -1,0 +1,80 @@
+\doxysection{aplicacao.\+h}
+\hypertarget{aplicacao_8h_source}{}\label{aplicacao_8h_source}\index{src/shell/aplicacao.h@{src/shell/aplicacao.h}}
+\mbox{\hyperlink{aplicacao_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#ifndef\ APLICACAO\_HPP}}
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#define\ APLICACAO\_HPP}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <GLFW/glfw3.h>}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{src_2core_2_sistema_solar_8h}{../core/sistemasolar.h}}"{}}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_aplicacao_ad2ff5fb07e16015f6462a0214e907867}{Aplicacao}}\ \{}
+\DoxyCodeLine{00012\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00013\ \ \ \ \ GLFWwindow*\ \mbox{\hyperlink{class_aplicacao_adf091d003a7f26e2468a133a1b56034d}{m\_window}};\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00014\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_aplicacao_af3f7cc449c236549924a1f93303a020f}{m\_screenWidth}};\ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00015\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_aplicacao_a48710f54ff05afaa37650fae0827022f}{m\_screenHeight}};\ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00016\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \mbox{\hyperlink{class_aplicacao_afb788f633b71cc9fae1b988347b716e4}{m\_titulo}};\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{comment}{//\ Ponteiro\ para\ o\ nosso\ Núcleo\ Funcional}}
+\DoxyCodeLine{00019\ \ \ \ \ \mbox{\hyperlink{class_solar_system}{SolarSystem}}*\ \mbox{\hyperlink{class_aplicacao_a0a45bcc0f3938cfd725a6a238e693b07}{m\_sistemaSolar}};}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{comment}{//\ ==========================================}}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{comment}{//\ Variáveis\ de\ Estado\ da\ Câmera}}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{comment}{//\ ==========================================}}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{class_aplicacao_a488fd94ef1490457d773ca73c47b11b8}{m\_cameraX}},\ \mbox{\hyperlink{class_aplicacao_ac510217062913f86f599a07f682e3fbd}{m\_cameraY}},\ \mbox{\hyperlink{class_aplicacao_a75b20534e9b5122ecba266cfadd1c732}{m\_cameraZoom}};}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{class_aplicacao_af8ea919205562c500164edbd9d5ce7eb}{m\_panStartCameraX}},\ \mbox{\hyperlink{class_aplicacao_ac8535b598a4f4e7f12c6f668b664e79a}{m\_panStartCameraY}};}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keywordtype}{double}\ \mbox{\hyperlink{class_aplicacao_abe05052b25b5516c66cc37ec7a00dde9}{m\_panStartMouseX}},\ \mbox{\hyperlink{class_aplicacao_a64176b31b8c58b952e43ee885a4394bf}{m\_panStartMouseY}};}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{comment}{//\ ==========================================}}
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{comment}{//\ Variáveis\ de\ Estado\ da\ Interface\ (UI/ImGui)}}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{comment}{//\ ==========================================}}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{class_aplicacao_a4dd848fb8ca53f19f17cd938a58f2440}{m\_planetVisualScale}};}
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_aplicacao_aa101c3c740dd0fe37633a0d8d212d395}{m\_isPlacementMode}};}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_aplicacao_afc7f30cbbee58cdd16b2df7aca272c05}{m\_autoOrbit}};}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{class_aplicacao_a3da3afbc1f2d4ca87fecf9316111c3ee}{m\_spawnMass}};}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{class_aplicacao_a2a772d8ffe9dfaeb5923d6d811b0c1cb}{m\_spawnColor}}[3];}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{class_aplicacao_a545e95bf6578df18434b8e6c0892347a}{m\_selectedBodyType}};\ }
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{comment}{//\ ==========================================}}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{comment}{//\ Variáveis\ de\ Estado\ do\ Mouse}}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{comment}{//\ ==========================================}}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_aplicacao_a12472915ace20e2669a9f12ed43ed5c9}{m\_isDragging}};}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{class_aplicacao_aa01d1228b1ad82a5732f808d6009f7fe}{m\_dragStartX}},\ \mbox{\hyperlink{class_aplicacao_a086da6068a24ab39407237676dc6a698}{m\_dragStartY}};}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{class_aplicacao_ad1a6ba8790f7c04a3e22ad6882976d90}{m\_dragCurrentX}},\ \mbox{\hyperlink{class_aplicacao_ab0c3f3eac6c4e21cf39074e587ef4fbe}{m\_dragCurrentY}};}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_aplicacao_a8450670afa369d86dea2ee1c8f5c1254}{m\_wasLeftMouseButtonDown}};}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_aplicacao_aa5fd7193fa21d84e9688c29a4ec08ae2}{m\_wasRightMouseButtonDown}};}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \ \ std::vector<Vector2>\ \mbox{\hyperlink{class_aplicacao_a5b1add5c6e05ae8ced64358f1b32a315}{m\_predictedPath}};}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{comment}{//\ ==========================================}}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{comment}{//\ Funções\ Internas\ de\ Controle}}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{comment}{//\ ==========================================}}
+\DoxyCodeLine{00052\ \ \ \ \ }
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_aplicacao_a4d2bb6b94d174aafd626da9198058d42}{processarEntrada}}();}
+\DoxyCodeLine{00057\ \ \ \ \ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_aplicacao_af4dfbdf07e9847ff248e1dbdc336b5d0}{calcularPrevisaoTrajetoria}}();}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_aplicacao_a8a6d4b858a4d5f0434264a0a88081bae}{desenharInterfaceUsuario}}();}
+\DoxyCodeLine{00067\ \ \ \ \ }
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_aplicacao_aadabdd406d25f6992c4e5e2fa56a2c7c}{converterTelaParaMundo}}(\textcolor{keywordtype}{double}\ sx,\ \textcolor{keywordtype}{double}\ sy,\ \textcolor{keywordtype}{float}\&\ wx,\ \textcolor{keywordtype}{float}\&\ wy);}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{comment}{//\ Callbacks\ do\ GLFW\ (precisam\ ser\ estáticos\ na\ orientação\ a\ objetos)}}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_aplicacao_a9fa80de1dfe2a885a063df8445106e6b}{scrollCallback}}(GLFWwindow*\ window,\ \textcolor{keywordtype}{double}\ xoffset,\ \textcolor{keywordtype}{double}\ yoffset);}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_aplicacao_a33530136fb77e7dc88f276e40cd13589}{keyCallback}}(GLFWwindow*\ window,\ \textcolor{keywordtype}{int}\ key,\ \textcolor{keywordtype}{int}\ scancode,\ \textcolor{keywordtype}{int}\ action,\ \textcolor{keywordtype}{int}\ mods);}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00088\ \ \ \ \ \mbox{\hyperlink{class_aplicacao_ad2ff5fb07e16015f6462a0214e907867}{Aplicacao}}(\textcolor{keywordtype}{int}\ largura,\ \textcolor{keywordtype}{int}\ altura,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ titulo);}
+\DoxyCodeLine{00089\ \ \ \ \ }
+\DoxyCodeLine{00093\ \ \ \ \ \mbox{\hyperlink{class_aplicacao_a34aa250f6b40006cb8d5b20641fcf881}{\string~Aplicacao}}();}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{class_aplicacao_a4fcf0950381779525ec03957b25256bf}{inicializar}}();}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{class_aplicacao_a58add8741fe1d29e59a5a6576e1ba9df}{executarLoop}}();}
+\DoxyCodeLine{00105\ \};}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ APLICACAO\_HPP}}
+
+\end{DoxyCode}

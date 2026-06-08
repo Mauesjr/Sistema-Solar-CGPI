@@ -1,0 +1,96 @@
+\doxysection{Renderizador Class Reference}
+\hypertarget{class_renderizador}{}\label{class_renderizador}\index{Renderizador@{Renderizador}}
+
+
+Classe responsável pela renderização gráfica do sistema solar.  
+
+
+
+
+{\ttfamily \#include $<$renderizador.\+h$>$}
+
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \mbox{\hyperlink{class_renderizador_a1859716048017ce2c0d947cd61e52c23}{renderizar\+Sistema}} (const \mbox{\hyperlink{class_solar_system}{Solar\+System}} \&sistema, float visual\+Scale)
+\begin{DoxyCompactList}\small\item\em Renderiza todo o estado atual do Sistema Solar. Recebe o estado como \textquotesingle{}const\textquotesingle{} para garantir que a renderização jamais altere a física acidentalmente (Princípio do Functional Core). \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \mbox{\hyperlink{class_renderizador_ac18c245f7a3e3f5dfa1b5f43daaa025b}{draw\+Circle}} (float cx, float cy, float r, int num\+\_\+segments, float r\+\_\+color, float g\+\_\+color, float b\+\_\+color)
+\begin{DoxyCompactList}\small\item\em Função auxiliar imperativa para desenhar um círculo usando Open\+GL. \end{DoxyCompactList}\item 
+static void \mbox{\hyperlink{class_renderizador_a03f5575272b65669dcabf3796e42eed6}{desenhar\+Estrelas\+De\+Fundo}} ()
+\begin{DoxyCompactList}\small\item\em Desenha um campo estelar processual (Starfield) no fundo da tela. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Classe responsável pela renderização gráfica do sistema solar. 
+
+
+\begin{DoxyItemize}
+\item Esta classe representa a "{}\+Casca Imperativa"{} (Imperative Shell). Ela não guarda estado físico e não possui regras matemáticas do universo. Apenas lê os dados do núcleo e executa as chamadas do Open\+GL para desenhar os pixels na tela. 
+\end{DoxyItemize}
+
+\label{doc-func-members}
+\Hypertarget{class_renderizador_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_renderizador_a03f5575272b65669dcabf3796e42eed6}\index{Renderizador@{Renderizador}!desenharEstrelasDeFundo@{desenharEstrelasDeFundo}}
+\index{desenharEstrelasDeFundo@{desenharEstrelasDeFundo}!Renderizador@{Renderizador}}
+\doxysubsubsection{\texorpdfstring{desenharEstrelasDeFundo()}{desenharEstrelasDeFundo()}}
+{\footnotesize\ttfamily \label{class_renderizador_a03f5575272b65669dcabf3796e42eed6} 
+void Renderizador\+::desenhar\+Estrelas\+De\+Fundo (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [private]}}
+
+
+
+Desenha um campo estelar processual (Starfield) no fundo da tela. 
+
+\Hypertarget{class_renderizador_ac18c245f7a3e3f5dfa1b5f43daaa025b}\index{Renderizador@{Renderizador}!drawCircle@{drawCircle}}
+\index{drawCircle@{drawCircle}!Renderizador@{Renderizador}}
+\doxysubsubsection{\texorpdfstring{drawCircle()}{drawCircle()}}
+{\footnotesize\ttfamily \label{class_renderizador_ac18c245f7a3e3f5dfa1b5f43daaa025b} 
+void Renderizador\+::draw\+Circle (\begin{DoxyParamCaption}\item[{float}]{cx}{, }\item[{float}]{cy}{, }\item[{float}]{r}{, }\item[{int}]{num\+\_\+segments}{, }\item[{float}]{r\+\_\+color}{, }\item[{float}]{g\+\_\+color}{, }\item[{float}]{b\+\_\+color}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [private]}}
+
+
+
+Função auxiliar imperativa para desenhar um círculo usando Open\+GL. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em cx} & Coordenada X do centro. \\
+\hline
+{\em cy} & Coordenada Y do centro. \\
+\hline
+{\em r} & Raio do círculo. \\
+\hline
+{\em num\+\_\+segments} & Quantidade de triângulos para formar o círculo. \\
+\hline
+{\em r\+\_\+color} & Cor vermelha (0.\+0 a 1.\+0). \\
+\hline
+{\em g\+\_\+color} & Cor verde (0.\+0 a 1.\+0). \\
+\hline
+{\em b\+\_\+color} & Cor azul (0.\+0 a 1.\+0). \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_renderizador_a1859716048017ce2c0d947cd61e52c23}\index{Renderizador@{Renderizador}!renderizarSistema@{renderizarSistema}}
+\index{renderizarSistema@{renderizarSistema}!Renderizador@{Renderizador}}
+\doxysubsubsection{\texorpdfstring{renderizarSistema()}{renderizarSistema()}}
+{\footnotesize\ttfamily \label{class_renderizador_a1859716048017ce2c0d947cd61e52c23} 
+void Renderizador\+::renderizar\+Sistema (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_solar_system}{Solar\+System}} \&}]{sistema}{, }\item[{float}]{visual\+Scale}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Renderiza todo o estado atual do Sistema Solar. Recebe o estado como \textquotesingle{}const\textquotesingle{} para garantir que a renderização jamais altere a física acidentalmente (Princípio do Functional Core). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sistema} & Referência constante (somente leitura) do motor físico. \\
+\hline
+{\em visual\+Scale} & Multiplicador visual para alterar o tamanho dos astros na tela. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/shell/\mbox{\hyperlink{renderizador_8h}{renderizador.\+h}}\item 
+src/shell/\mbox{\hyperlink{renderizador_8cpp}{renderizador.\+cpp}}\end{DoxyCompactItemize}

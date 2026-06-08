@@ -1,0 +1,79 @@
+\doxysection{main.\+cpp File Reference}
+\hypertarget{main_8cpp}{}\label{main_8cpp}\index{main.cpp@{main.cpp}}
+{\ttfamily \#include $<$GLFW/glfw3.\+h$>$}\newline
+{\ttfamily \#include "{}Sistema\+Solar.\+h"{}}\newline
+{\ttfamily \#include "{}imgui.\+h"{}}\newline
+{\ttfamily \#include "{}imgui\+\_\+impl\+\_\+glfw.\+h"{}}\newline
+{\ttfamily \#include "{}imgui\+\_\+impl\+\_\+opengl2.\+h"{}}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{main_8cpp_aa9b224479e8c1cc5251b8e7f3fdabacd}{scroll\+Callback}} (GLFWwindow \texorpdfstring{$\ast$}{*}window, double xoffset, double yoffset)
+\item 
+void \mbox{\hyperlink{main_8cpp_a0b9e239c8889734711f29fe45551605b}{key\+Callback}} (GLFWwindow \texorpdfstring{$\ast$}{*}window, int key, int scancode, int action, int mods)
+\item 
+int \mbox{\hyperlink{main_8cpp_a840291bc02cba5474a4cb46a9b9566fe}{main}} (void)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_solar_system}{Solar\+System}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{main_8cpp_a9b7b2c37c2832a300ed22adec798f632}{solarsystem}}
+\item 
+float \mbox{\hyperlink{main_8cpp_adb1a2e6874bde3042fc94ed6eeb1a009}{cameraX}} = 0.\+0f
+\item 
+float \mbox{\hyperlink{main_8cpp_a94e84fdd90518c58e709b5f916961937}{cameraY}} = 0.\+0f
+\item 
+float \mbox{\hyperlink{main_8cpp_a481641221d7ee02320b119bfa8247923}{camera\+Zoom}} = 1.\+0f
+\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{main_8cpp_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{main_8cpp_a0b9e239c8889734711f29fe45551605b}\index{main.cpp@{main.cpp}!keyCallback@{keyCallback}}
+\index{keyCallback@{keyCallback}!main.cpp@{main.cpp}}
+\doxysubsubsection{\texorpdfstring{keyCallback()}{keyCallback()}}
+{\footnotesize\ttfamily \label{main_8cpp_a0b9e239c8889734711f29fe45551605b} 
+void key\+Callback (\begin{DoxyParamCaption}\item[{GLFWwindow \texorpdfstring{$\ast$}{*}}]{window}{, }\item[{int}]{key}{, }\item[{int}]{scancode}{, }\item[{int}]{action}{, }\item[{int}]{mods}{}\end{DoxyParamCaption})}
+
+\Hypertarget{main_8cpp_a840291bc02cba5474a4cb46a9b9566fe}\index{main.cpp@{main.cpp}!main@{main}}
+\index{main@{main}!main.cpp@{main.cpp}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily \label{main_8cpp_a840291bc02cba5474a4cb46a9b9566fe} 
+int main (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{main_8cpp_aa9b224479e8c1cc5251b8e7f3fdabacd}\index{main.cpp@{main.cpp}!scrollCallback@{scrollCallback}}
+\index{scrollCallback@{scrollCallback}!main.cpp@{main.cpp}}
+\doxysubsubsection{\texorpdfstring{scrollCallback()}{scrollCallback()}}
+{\footnotesize\ttfamily \label{main_8cpp_aa9b224479e8c1cc5251b8e7f3fdabacd} 
+void scroll\+Callback (\begin{DoxyParamCaption}\item[{GLFWwindow \texorpdfstring{$\ast$}{*}}]{window}{, }\item[{double}]{xoffset}{, }\item[{double}]{yoffset}{}\end{DoxyParamCaption})}
+
+
+
+\label{doc-var-members}
+\Hypertarget{main_8cpp_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{main_8cpp_adb1a2e6874bde3042fc94ed6eeb1a009}\index{main.cpp@{main.cpp}!cameraX@{cameraX}}
+\index{cameraX@{cameraX}!main.cpp@{main.cpp}}
+\doxysubsubsection{\texorpdfstring{cameraX}{cameraX}}
+{\footnotesize\ttfamily \label{main_8cpp_adb1a2e6874bde3042fc94ed6eeb1a009} 
+float cameraX = 0.\+0f}
+
+\Hypertarget{main_8cpp_a94e84fdd90518c58e709b5f916961937}\index{main.cpp@{main.cpp}!cameraY@{cameraY}}
+\index{cameraY@{cameraY}!main.cpp@{main.cpp}}
+\doxysubsubsection{\texorpdfstring{cameraY}{cameraY}}
+{\footnotesize\ttfamily \label{main_8cpp_a94e84fdd90518c58e709b5f916961937} 
+float cameraY = 0.\+0f}
+
+\Hypertarget{main_8cpp_a481641221d7ee02320b119bfa8247923}\index{main.cpp@{main.cpp}!cameraZoom@{cameraZoom}}
+\index{cameraZoom@{cameraZoom}!main.cpp@{main.cpp}}
+\doxysubsubsection{\texorpdfstring{cameraZoom}{cameraZoom}}
+{\footnotesize\ttfamily \label{main_8cpp_a481641221d7ee02320b119bfa8247923} 
+float camera\+Zoom = 1.\+0f}
+
+\Hypertarget{main_8cpp_a9b7b2c37c2832a300ed22adec798f632}\index{main.cpp@{main.cpp}!solarsystem@{solarsystem}}
+\index{solarsystem@{solarsystem}!main.cpp@{main.cpp}}
+\doxysubsubsection{\texorpdfstring{solarsystem}{solarsystem}}
+{\footnotesize\ttfamily \label{main_8cpp_a9b7b2c37c2832a300ed22adec798f632} 
+\mbox{\hyperlink{class_solar_system}{Solar\+System}}\texorpdfstring{$\ast$}{*} solarsystem}
+

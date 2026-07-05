@@ -1,0 +1,197 @@
+#version 450 core
+
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+
+struct Particle {
+    vec4 position; // xyz = position, w = density
+    vec4 velocity; // xyz = velocity, w = pressure
+};
+
+struct SpatialEntry {
+    uint particleIndex;
+    uint hash;
+};
+
+// Binding 0: Particle Data
+layout(std430, binding = 0) buffer ParticleBuffer {
+    Particle particles[];
+};
+
+// Binding 1: Sorted Spatial Indices
+layout(std430, binding = 1) buffer SpatialIndices {
+    SpatialEntry spatialEntries[];
+};
+
+// Binding 2: Cell Offsets Lookup Table
+layout(std430, binding = 2) buffer CellOffsets {
+    uint offsets[];
+};
+
+uniform float deltaTime;
+uniform int numParticles;
+uniform int currentPass;
+
+uniform vec3 gravity;
+uniform float damping;
+uniform float smoothingRadius;
+uniform float targetDensity;
+uniform float pressureMultiplier;
+uniform float viscosityStrength;
+
+const float PI = 3.14159265359;
+
+// Smoothing Kernel for Density (Poly6)
+float DensityKernel(float distance, float radius) {
+    if (distance >= radius) return 0.0;
+    float v = radius * radius - distance * distance;
+    return v * v * v * (315.0 / (64.0 * PI * pow(radius, 9)));
+}
+
+// Smoothing Kernel Gradient for Pressure (Spiky)
+float PressureKernelDerivative(float distance, float radius) {
+    if (distance >= radius || distance <= 0.0001) return 0.0;
+    float v = radius - distance;
+    return -v * v * (45.0 / (PI * pow(radius, 6)));
+}
+
+// Laplacian of the Viscosity Kernel
+float ViscosityKernelLaplacian(float distance, float radius) {
+    if (distance >= radius) return 0.0;
+    float v = radius - distance;
+    return (45.0 / (PI * pow(radius, 6))) * v;
+}
+
+// Convert density to pressure value
+float CalculatePressure(float density) {
+    float pressure = (density - targetDensity) * pressureMultiplier;
+    return max(pressure, 0.0);
+}
+
+// Hash function mapping 3D grid coordinates to a 1D index
+uint Hash(ivec3 cellCoords) {
+    uint h = (uint(cellCoords.x) * 15823) + 
+             (uint(cellCoords.y) * 9737333) + 
+             (uint(cellCoords.z) * 440817757);
+    return h % uint(numParticles);
+}
+
+void CalculateDensityPass(uint i) {
+    vec3 pos = particles[i].position.xyz;
+    float density = 0.0;
+    
+    // Find the current grid cell
+    ivec3 centerCell = ivec3(floor(pos / smoothingRadius));
+
+    // Search a 3x3x3 grid around the particle
+    for (int offsetX = -1; offsetX <= 1; offsetX++) {
+        for (int offsetY = -1; offsetY <= 1; offsetY++) {
+            for (int offsetZ = -1; offsetZ <= 1; offsetZ++) {
+                
+                ivec3 neighborCell = centerCell + ivec3(offsetX, offsetY, offsetZ);
+                uint neighborHash = Hash(neighborCell);
+                uint startIndex = offsets[neighborHash];
+                
+                // If the cell has particles in it (not 0xFFFFFFFF)
+                if (startIndex != 0xFFFFFFFF) {
+                    for (uint j = startIndex; j < numParticles; j++) {
+                        // Stop looping once we hit a different cell hash
+                        if (spatialEntries[j].hash != neighborHash) break;
+                        
+                        uint neighborIndex = spatialEntries[j].particleIndex;
+                        vec3 neighborPos = particles[neighborIndex].position.xyz;
+                        float dist = length(pos - neighborPos);
+                        density += DensityKernel(dist, smoothingRadius);
+                    }
+                }
+            }
+        }
+    }
+    
+    // Store density in the w component
+    particles[i].position.w = max(density, 0.0001); 
+    particles[i].velocity.w = CalculatePressure(particles[i].position.w);
+}
+
+void CalculateForcePass(uint i) {
+    vec3 pos = particles[i].position.xyz;
+    vec3 vel = particles[i].velocity.xyz;
+    float density = particles[i].position.w;
+    float pressure = particles[i].velocity.w;
+    
+    vec3 pressureForce = vec3(0.0);
+    vec3 viscosityForce = vec3(0.0);
+    ivec3 centerCell = ivec3(floor(pos / smoothingRadius));
+    
+    for (int offsetX = -1; offsetX <= 1; offsetX++) {
+        for (int offsetY = -1; offsetY <= 1; offsetY++) {
+            for (int offsetZ = -1; offsetZ <= 1; offsetZ++) {
+                
+                ivec3 neighborCell = centerCell + ivec3(offsetX, offsetY, offsetZ);
+                uint neighborHash = Hash(neighborCell);
+                uint startIndex = offsets[neighborHash];
+                
+                if (startIndex != 0xFFFFFFFF) {
+                    for (uint j = startIndex; j < numParticles; j++) {
+                        if (spatialEntries[j].hash != neighborHash) break;
+                        
+                        uint neighborIndex = spatialEntries[j].particleIndex;
+                        if (i == neighborIndex) continue; // Do not push off yourself
+                        
+                        vec3 neighborPos = particles[neighborIndex].position.xyz;
+                        vec3 neighborVel = particles[neighborIndex].velocity.xyz;
+                        float neighborDensity = particles[neighborIndex].position.w;
+                        float neighborPressure = particles[neighborIndex].velocity.w;
+                        
+                        vec3 dir = neighborPos - pos;
+                        float dist = length(dir);
+                        
+                        if (dist > 0.0 && dist < smoothingRadius) {
+                            // Calculate Pressure
+                            dir = normalize(dir);
+                            float sharedPressure = (pressure + neighborPressure) / 2.0;
+                            float pressMagnitude = sharedPressure * PressureKernelDerivative(dist, smoothingRadius) / neighborDensity;
+                            pressureForce += dir * pressMagnitude;
+                            
+                            // Calculate Viscosity
+                            vec3 velDiff = neighborVel - vel;
+                            float viscMagnitude = viscosityStrength * ViscosityKernelLaplacian(dist, smoothingRadius) / neighborDensity;
+                            viscosityForce += velDiff * viscMagnitude;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Apply forces to the acceleration
+    vec3 acceleration = gravity + (pressureForce / density) + (viscosityForce / density);
+    vel += acceleration * deltaTime;
+    pos += vel * deltaTime;
+
+    // Boundary Collisions (Expanded Tank)
+    vec3 boxMin = vec3(0.0, 0.0, 0.0);
+    vec3 boxMax = vec3(40.0, 40.0, 40.0);
+    for (int axis = 0; axis < 3; axis++) {
+        if (pos[axis] < boxMin[axis]) {
+            pos[axis] = boxMin[axis];
+            vel[axis] *= -damping;
+        } else if (pos[axis] > boxMax[axis]) {
+            pos[axis] = boxMax[axis];
+            vel[axis] *= -damping;
+        }
+    }
+
+    particles[i].position.xyz = pos;
+    particles[i].velocity.xyz = vel;
+}
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= numParticles) return; 
+
+    if (currentPass == 0) {
+        CalculateDensityPass(i);
+    } else {
+        CalculateForcePass(i);
+    }
+}

@@ -1,0 +1,49 @@
+#version 450 core
+
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+
+struct SpatialEntry {
+    uint particleIndex;
+    uint hash;
+};
+
+// Binding 1: The sorted spatial indices
+layout(std430, binding = 1) buffer SpatialIndices {
+    SpatialEntry spatialEntries[];
+};
+
+// Binding 2: The new Cell Offsets lookup table
+layout(std430, binding = 2) buffer CellOffsets {
+    uint offsets[];
+};
+
+uniform uint numParticles;
+uniform int currentPass;
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    
+    // We size the offsets array to match the number of particles
+    if (i >= numParticles) return;
+
+    if (currentPass == 0) {
+        // Pass 0: Clear the offsets table (0xFFFFFFFF means empty)
+        offsets[i] = 0xFFFFFFFF;
+    } else {
+        // Pass 1: Find the start boundaries of each cell
+        uint currentHash = spatialEntries[i].hash;
+        
+        // Ignore the padded elements from the Bitonic Sort
+        if (currentHash == 0xFFFFFFFF) return;
+
+        if (i == 0) {
+            offsets[currentHash] = 0;
+        } else {
+            uint prevHash = spatialEntries[i - 1].hash;
+            // If the hash changed, we found the beginning of a new cell group
+            if (currentHash != prevHash) {
+                offsets[currentHash] = i;
+            }
+        }
+    }
+}

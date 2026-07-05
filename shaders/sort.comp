@@ -1,0 +1,48 @@
+#version 450 core
+
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+
+struct SpatialEntry {
+    uint particleIndex;
+    uint hash;
+};
+
+// Binding 1: The spatial index array we just created
+layout(std430, binding = 1) buffer SpatialIndices {
+    SpatialEntry spatialEntries[];
+};
+
+uniform uint numParticles;
+uniform uint stage;
+uniform uint step;
+
+void main() {
+    uint threadId = gl_GlobalInvocationID.x;
+    
+    // Each thread handles one pair of elements.
+    // Calculate the left (j) and right (k) indices to compare.
+    uint j = (threadId / step) * (step * 2) + (threadId % step);
+    uint k = j + step;
+
+    uint sortDir = (j / stage) % 2; // 0 = ascending, 1 = descending
+
+    uint hashJ = spatialEntries[j].hash;
+    uint hashK = spatialEntries[k].hash;
+
+    // Pad invalid/empty buffer spaces to the end by giving them the maximum possible hash
+    if (j >= numParticles) hashJ = 0xFFFFFFFF;
+    if (k >= numParticles) hashK = 0xFFFFFFFF;
+
+    bool swap = false;
+    if (sortDir == 0) { 
+        if (hashJ > hashK) swap = true;
+    } else { 
+        if (hashJ < hashK) swap = true;
+    }
+
+    if (swap) {
+        SpatialEntry temp = spatialEntries[j];
+        spatialEntries[j] = spatialEntries[k];
+        spatialEntries[k] = temp;
+    }
+}

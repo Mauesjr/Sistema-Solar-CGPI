@@ -1,0 +1,54 @@
+#version 450 core
+
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+
+struct Particle {
+    vec4 position;
+    vec4 velocity;
+};
+
+// The new Key-Value pair structure
+struct SpatialEntry {
+    uint particleIndex;
+    uint hash;
+};
+
+// Binding 0: The existing particle data
+layout(std430, binding = 0) buffer ParticleBuffer {
+    Particle particles[];
+};
+
+// Binding 1: The new spatial index array
+layout(std430, binding = 1) buffer SpatialIndices {
+    SpatialEntry spatialEntries[];
+};
+
+uniform int numParticles;
+uniform float smoothingRadius;
+
+// A standard spatial hashing function using prime numbers
+uint Hash(ivec3 cellCoords) {
+    uint h = (uint(cellCoords.x) * 15823) + 
+             (uint(cellCoords.y) * 9737333) + 
+             (uint(cellCoords.z) * 440817757);
+    
+    // Wrap the hash to fit within our table size
+    return h % uint(numParticles);
+}
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= numParticles) return;
+
+    vec3 pos = particles[i].position.xyz;
+    
+    // 1. Find the 3D grid cell coordinate (Cell Size = Smoothing Radius)
+    ivec3 cellCoords = ivec3(floor(pos / smoothingRadius));
+    
+    // 2. Flatten the 3D coordinate into a 1D hash value
+    uint hash = Hash(cellCoords);
+    
+    // 3. Store the particle's index and its new cell hash
+    spatialEntries[i].particleIndex = i;
+    spatialEntries[i].hash = hash;
+}

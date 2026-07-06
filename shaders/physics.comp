@@ -38,6 +38,17 @@ uniform float targetDensity;
 uniform float pressureMultiplier;
 uniform float viscosityStrength;
 
+uniform vec3  interactionPoint;
+uniform float interactionRadius;
+uniform float interactionForce;
+uniform bool  interactionActive;
+uniform bool  interactionEnabled;
+uniform bool  interactionPull;
+uniform float pullRadius;
+uniform float pullForce;
+
+uniform uint hashTableSize;
+
 const float PI = 3.14159265359;
 
 // Smoothing Kernel for Density (Poly6)
@@ -72,7 +83,7 @@ uint Hash(ivec3 cellCoords) {
     uint h = (uint(cellCoords.x) * 15823) + 
              (uint(cellCoords.y) * 9737333) + 
              (uint(cellCoords.z) * 440817757);
-    return h % uint(numParticles);
+    return h % hashTableSize;
 }
 
 void CalculateDensityPass(uint i) {
@@ -107,8 +118,38 @@ void CalculateDensityPass(uint i) {
         }
     }
     
-    // Store density in the w component
-    particles[i].position.w = max(density, 0.0001); 
+    // Boundary density correction via ghost particles (26 neighbors)
+    vec3 boxMin = vec3(0.0);
+    vec3 boxMax = vec3(40.0);
+    for (int gx = -1; gx <= 1; gx++) {
+        for (int gy = -1; gy <= 1; gy++) {
+            for (int gz = -1; gz <= 1; gz++) {
+                if (gx == 0 && gy == 0 && gz == 0) continue;
+
+                vec3 delta;
+                bool valid = true;
+
+                if (gx < 0) { delta.x = pos.x - boxMin.x; if (delta.x >= smoothingRadius) valid = false; }
+                else if (gx > 0) { delta.x = boxMax.x - pos.x; if (delta.x >= smoothingRadius) valid = false; }
+                else delta.x = 0.0;
+
+                if (gy < 0) { delta.y = pos.y - boxMin.y; if (delta.y >= smoothingRadius) valid = false; }
+                else if (gy > 0) { delta.y = boxMax.y - pos.y; if (delta.y >= smoothingRadius) valid = false; }
+                else delta.y = 0.0;
+
+                if (gz < 0) { delta.z = pos.z - boxMin.z; if (delta.z >= smoothingRadius) valid = false; }
+                else if (gz > 0) { delta.z = boxMax.z - pos.z; if (delta.z >= smoothingRadius) valid = false; }
+                else delta.z = 0.0;
+
+                if (valid) {
+                    density += DensityKernel(2.0 * length(delta), smoothingRadius);
+                }
+            }
+        }
+    }
+
+    // Store corrected density and pressure
+    particles[i].position.w = max(density, 0.0001);
     particles[i].velocity.w = CalculatePressure(particles[i].position.w);
 }
 
@@ -163,21 +204,67 @@ void CalculateForcePass(uint i) {
         }
     }
     
+    // Ghost particle pressure force for wall boundaries
+    vec3 boxMin = vec3(0.0, 0.0, 0.0);
+    vec3 boxMax = vec3(40.0, 40.0, 40.0);
+    for (int axis = 0; axis < 3; axis++) {
+        float dMin = pos[axis] - boxMin[axis];
+        if (dMin > 0.0 && dMin < smoothingRadius) {
+            float ghostDist = 2.0 * dMin;
+            if (ghostDist < smoothingRadius) {
+                vec3 ghostDir = vec3(0.0);
+                ghostDir[axis] = -1.0;
+                float pressMag = pressure * PressureKernelDerivative(ghostDist, smoothingRadius) / density;
+                pressureForce += ghostDir * pressMag;
+            }
+        }
+        float dMax = boxMax[axis] - pos[axis];
+        if (dMax > 0.0 && dMax < smoothingRadius) {
+            float ghostDist = 2.0 * dMax;
+            if (ghostDist < smoothingRadius) {
+                vec3 ghostDir = vec3(0.0);
+                ghostDir[axis] = 1.0;
+                float pressMag = pressure * PressureKernelDerivative(ghostDist, smoothingRadius) / density;
+                pressureForce += ghostDir * pressMag;
+            }
+        }
+    }
+
     // Apply forces to the acceleration
     vec3 acceleration = gravity + (pressureForce / density) + (viscosityForce / density);
     vel += acceleration * deltaTime;
     pos += vel * deltaTime;
 
     // Boundary Collisions (Expanded Tank)
-    vec3 boxMin = vec3(0.0, 0.0, 0.0);
-    vec3 boxMax = vec3(40.0, 40.0, 40.0);
     for (int axis = 0; axis < 3; axis++) {
         if (pos[axis] < boxMin[axis]) {
             pos[axis] = boxMin[axis];
-            vel[axis] *= -damping;
+            vel[axis] = abs(vel[axis]) * damping;
         } else if (pos[axis] > boxMax[axis]) {
             pos[axis] = boxMax[axis];
-            vel[axis] *= -damping;
+            vel[axis] = -abs(vel[axis]) * damping;
+        }
+    }
+
+    // Mouse Repel Interaction
+    if (interactionEnabled && interactionActive) {
+        vec3 dir = pos - interactionPoint;
+        float dist = length(dir);
+        if (dist < interactionRadius && dist > 0.001) {
+            float t = dist / interactionRadius;
+            float falloff = 1.0 - (t * t);
+            vel += normalize(dir) * interactionForce * falloff;
+        }
+    }
+
+    // Mouse Pull Interaction
+    if (interactionPull && interactionActive) {
+        vec3 dir = interactionPoint - pos;
+        float dist = length(dir);
+        if (dist < pullRadius && dist > 0.001) {
+            float t = dist/pullRadius;
+            float falloff = 1.0 - (t * t);
+            vel += normalize(dir) * pullForce * falloff;
         }
     }
 

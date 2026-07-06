@@ -25,6 +25,7 @@ layout(std430, binding = 1) buffer SpatialIndices {
 
 uniform int numParticles;
 uniform float smoothingRadius;
+uniform uint hashTableSize;
 
 // A standard spatial hashing function using prime numbers
 uint Hash(ivec3 cellCoords) {
@@ -33,7 +34,7 @@ uint Hash(ivec3 cellCoords) {
              (uint(cellCoords.z) * 440817757);
     
     // Wrap the hash to fit within our table size
-    return h % uint(numParticles);
+    return h % hashTableSize;
 }
 
 void main() {

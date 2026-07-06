@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <vector>
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     std::string vertexCodeStr = loadShaderCode(vertexPath);
@@ -59,20 +60,26 @@ Shader::Shader(const char* computePath) {
 }
 
 std::string Shader::loadShaderCode(const char* path) const {
-    std::string code;
-    std::ifstream shaderFile;
+    std::vector<std::string> candidates = { path };
+    std::string parentPath = std::string("../") + path;
+    if (path != parentPath) candidates.push_back(parentPath);
 
-    shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    try {
-        shaderFile.open(path);
-        std::stringstream shaderStream;
-        shaderStream << shaderFile.rdbuf();
-        shaderFile.close();
-        code = shaderStream.str();
-    } catch (std::ifstream::failure& e) {
-        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << path << std::endl;
+    for (const auto& candidate : candidates) {
+        std::ifstream shaderFile;
+        shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        try {
+            shaderFile.open(candidate);
+            std::stringstream shaderStream;
+            shaderStream << shaderFile.rdbuf();
+            shaderFile.close();
+            return shaderStream.str();
+        } catch (std::ifstream::failure&) {
+            continue;
+        }
     }
-    return code;
+
+    std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << path << std::endl;
+    return {};
 }
 
 void Shader::use() const {

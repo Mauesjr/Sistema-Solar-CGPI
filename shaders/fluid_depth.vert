@@ -8,7 +8,6 @@ struct Particle {
     vec4 velocity;
 };
 
-// The SSBO containing the positions of all 4,000 particles
 layout(std430, binding = 0) buffer ParticleBuffer {
     Particle particles[];
 };
@@ -17,26 +16,18 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform float particleRadius;
 
-out vec3 Normal;
-out vec3 FragPos;
+out vec4 WorldPos;
 out float Speed;
 out float Density;
 out float Pressure;
 
 void main() {
-    // Get the specific particle's world position using the instancing ID
     vec3 particleCenter = particles[gl_InstanceID].position.xyz;
-    
-    // Scale the base sphere by the radius and move it to the particle's position
     vec3 worldPos = (aPos * particleRadius) + particleCenter;
-    
-    FragPos = worldPos;
-    Normal = aNormal;
-    
+    WorldPos = vec4(worldPos, 1.0);
     vec3 vel = particles[gl_InstanceID].velocity.xyz;
     Speed = length(vel);
     Density = particles[gl_InstanceID].position.w;
     Pressure = particles[gl_InstanceID].velocity.w;
-    
     gl_Position = projection * view * vec4(worldPos, 1.0);
 }

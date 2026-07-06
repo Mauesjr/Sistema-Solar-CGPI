@@ -2,7 +2,8 @@
 
 out vec4 FragColor;
 
+uniform float boxOpacity;
+
 void main() {
-    // Render the wireframe in a subtle white/grey
-    FragColor = vec4(0.8, 0.8, 0.8, 0.5); 
+    FragColor = vec4(0.8, 0.8, 0.8, boxOpacity);
 }

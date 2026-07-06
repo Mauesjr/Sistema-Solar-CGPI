@@ -18,19 +18,17 @@ layout(std430, binding = 2) buffer CellOffsets {
 };
 
 uniform uint numParticles;
+uniform uint hashTableSize;
 uniform int currentPass;
 
 void main() {
     uint i = gl_GlobalInvocationID.x;
-    
-    // We size the offsets array to match the number of particles
-    if (i >= numParticles) return;
 
     if (currentPass == 0) {
-        // Pass 0: Clear the offsets table (0xFFFFFFFF means empty)
+        if (i >= hashTableSize) return;
         offsets[i] = 0xFFFFFFFF;
     } else {
-        // Pass 1: Find the start boundaries of each cell
+        if (i >= numParticles) return;
         uint currentHash = spatialEntries[i].hash;
         
         // Ignore the padded elements from the Bitonic Sort

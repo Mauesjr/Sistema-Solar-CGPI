@@ -51,5 +51,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} 
     ${GLFW_LIBRARIES}
     ${OPENGL_LIBRARIES}
-    dl # Required for GLAD on Linux
 )
+
+if (UNIX)
+    target_link_libraries(${PROJECT_NAME} dl)
+endif()
